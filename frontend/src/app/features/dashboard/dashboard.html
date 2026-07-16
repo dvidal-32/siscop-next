@@ -1,0 +1,143 @@
+<div class="space-y-8 max-w-7xl mx-auto">
+  <!-- Welcome Banner -->
+  <div class="relative bg-gradient-to-r from-blue-50 to-sky-100 rounded-3xl p-8 border border-blue-200/50 overflow-hidden shadow-xl">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"></div>
+    <div class="relative z-10 space-y-3">
+      <span class="text-xs font-semibold bg-blue-600/10 text-blue-700 border border-blue-600/20 px-3 py-1 rounded-full uppercase tracking-wider">
+        Panel de Control
+      </span>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+        ¡Bienvenido de nuevo, {{ user()?.first_name }}!
+      </h1>
+      <p class="text-slate-600 max-w-xl text-sm leading-relaxed font-medium">
+        Estás conectado a la plataforma de administración **SISCOP NEXT** para **{{ user()?.tenant?.name }}**. Aquí podrás gestionar accesos, revisar roles, auditar cambios y configurar tu empresa.
+      </p>
+    </div>
+  </div>
+
+  <!-- Metric grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Card 1 -->
+    <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-2xl shadow-lg relative overflow-hidden group hover:border-slate-800 transition-all flex flex-col justify-between min-h-[220px]">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-colors"></div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Módulo Usuarios</h3>
+        <p class="text-2xl font-bold text-white mt-4">
+          {{ user()?.configuredUsers || 0 }} / {{ user()?.maxUsers || 0 }}
+          <span class="text-xs text-slate-400 font-medium font-mono uppercase ml-1">Límite</span>
+        </p>
+        <p class="text-xs text-slate-400 mt-2">Usuarios configurados en el sistema versus la capacidad de tu plan actual.</p>
+      </div>
+      <div class="pt-3 border-t border-slate-850/50 mt-4 shrink-0">
+        <a routerLink="/admin/users" class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+          Gestionar Usuarios →
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-2xl shadow-lg relative overflow-hidden group hover:border-slate-800 transition-all flex flex-col justify-between min-h-[220px]">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-xl group-hover:bg-sky-500/10 transition-colors"></div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Módulo Roles</h3>
+        <p class="text-2xl font-bold text-white mt-4">Configurado</p>
+        <p class="text-xs text-slate-400 mt-2">Crea, edita y restringe permisos de forma granular por rol corporativo.</p>
+      </div>
+      <div class="pt-3 border-t border-slate-850/50 mt-4 shrink-0">
+        <a routerLink="/admin/roles" class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+          Configurar Roles →
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 3: Audit Logs Timeline -->
+    <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-2xl shadow-lg relative overflow-hidden group hover:border-slate-800 transition-all flex flex-col justify-between min-h-[220px]">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-colors"></div>
+      
+      <div class="space-y-4">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Últimos Cambios (Auditoría)</h3>
+        
+        <div class="relative border-l border-slate-800 pl-4 space-y-3 text-xs text-slate-400">
+          @for (log of recentLogs(); track log.id) {
+            <div class="relative group/item">
+              <!-- Dot Indicator -->
+              <span 
+                [class]="log.action === 'create' ? 'bg-emerald-500 shadow-emerald-500/30' : log.action === 'update' ? 'bg-amber-500 shadow-amber-500/30' : 'bg-rose-500 shadow-rose-500/30'"
+                class="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full border border-slate-900 shadow-sm transition-all"
+              ></span>
+              <div class="flex items-center justify-between">
+                <strong class="text-white capitalize text-[10px] font-bold">
+                  {{ log.action === 'create' ? 'Creación' : log.action === 'update' ? 'Modificación' : 'Eliminación' }}
+                </strong>
+                <span class="text-[8px] text-slate-500 font-mono">{{ log.created_at | date:'HH:mm' }}</span>
+              </div>
+              <div class="text-[9px] text-slate-500 truncate mt-0.5 max-w-[200px]" [title]="log.entity_name">
+                {{ log.user?.first_name || 'Sistema' }} en {{ log.module }} (ID: {{ log.entity_id.substring(0,8) }})
+              </div>
+            </div>
+          } @empty {
+            <div class="text-slate-600 py-3 text-center text-[10px]">
+              Sin operaciones registradas.
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-850/50 mt-4 shrink-0">
+        <a routerLink="/audit-logs" class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+          Ver Historial Completo →
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 4: Subscription Info -->
+    <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-2xl shadow-lg relative overflow-hidden group hover:border-slate-800 transition-all flex flex-col justify-between min-h-[220px]">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition-colors"></div>
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Mi Suscripción</h3>
+        <p class="text-2xl font-bold text-white mt-4 flex items-center gap-2">
+          {{ user()?.tenant?.plan?.name || 'Cargando...' }}
+          <span 
+            [class]="user()?.subscription?.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'"
+            class="text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider"
+          >
+            {{ user()?.subscription?.status === 'active' ? 'Activo' : 'Vencido' }}
+          </span>
+        </p>
+        <p class="text-xs text-slate-400 mt-3 font-medium">
+          Expiración: <span class="text-white font-bold font-mono">{{ user()?.subscription?.endDate | date:'dd/MM/yyyy' }}</span>
+        </p>
+        @if (remainingDays() !== null) {
+          <p 
+            [class]="remainingDays()! <= 5 ? 'font-extrabold text-2xl mt-1.5' : 'font-semibold text-xs mt-1.5'"
+            [style.color]="remainingDays()! <= 5 ? '#dc2626' : 'black'"
+          >
+            {{ remainingDays() }} {{ remainingDays()! === 1 ? 'día restante' : 'días restantes' }}
+          </p>
+          
+          <!-- Progressive horizontal progress bar -->
+          <div class="mt-3 space-y-1">
+            <div class="w-full bg-slate-850 rounded-full h-1.5 overflow-hidden">
+              <div 
+                [class]="remainingDays()! <= 5 ? 'bg-red-600' : 'bg-indigo-500'"
+                [style.background-color]="remainingDays()! <= 5 ? '#dc2626' : null"
+                [style.width.%]="remainingDaysPercent()"
+                class="h-full rounded-full transition-all duration-500 shadow-sm"
+              ></div>
+            </div>
+            <div class="flex justify-between text-[8px] text-slate-500 font-mono">
+              <span>0d</span>
+              <span>30d</span>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="pt-3 border-t border-slate-850/50 mt-4 shrink-0">
+        <a routerLink="/admin/company" class="text-[9px] font-extrabold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+          Cambiar Plan →
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>

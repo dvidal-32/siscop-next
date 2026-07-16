@@ -1,0 +1,543 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+// PLANES SAAS
+// ──────────────────────────────────────────────
+model Plan {
+  id            String         @id @default(uuid())
+  code          String         @unique
+  name          String
+  description   String?
+  price         Decimal        @db.Decimal(10, 2)
+  billing_cycle String         // e.g. "monthly", "yearly"
+  max_users     Int
+  max_storage_mb Int
+  is_active     Boolean        @default(true)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  tenants       Tenant[]
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+// ──────────────────────────────────────────────
+// TENANTS (EMPRESAS / CLIENTES)
+// ──────────────────────────────────────────────
+model Tenant {
+  id            String          @id @default(uuid())
+  name          String
+  slug          String          @unique
+  legal_name    String?
+  tax_id        String?
+  email         String?
+  phone         String?
+  logo          String?         @db.Text
+  country       String?
+  city          String?
+  municipality  String?
+  street        String?
+  number        String?
+  postal_code   String?
+  whatsapp      String?
+  status        String          // active, suspended, pending, cancelled
+  plan_id       String
+  plan          Plan            @relation(fields: [plan_id], references: [id])
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  created_by    String?
+  updated_by    String?
+  users                  User[]
+  roles                  Role[]
+  subscriptions          Subscription[]
+  settings               TenantSetting[]
+  audit_logs             AuditLog[]
+  payments               Payment[]
+  taxes                  TaxSetting[]
+  systems                CatalogSystem[]
+  finishes               CatalogFinish[]
+  catalog_items          CatalogItem[]
+  engineering_templates  EngineeringTemplate[]
+
+  @@index([status])
+  @@index([plan_id])
+  @@map("tenants")
+}
+
+// ──────────────────────────────────────────────
+// USUARIOS
+// ──────────────────────────────────────────────
+model User {
+  id                  String         @id @default(uuid())
+  tenant_id           String?
+  tenant              Tenant?        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  email               String         @unique
+  username            String?
+  password_hash       String
+  first_name          String?
+  last_name           String?
+  phone               String?
+  status              String         // active, inactive, pending, locked
+  last_login_at       DateTime?
+  password_changed_at DateTime?
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  created_by          String?
+  updated_by          String?
+  roles               UserRole[]
+  refresh_tokens      RefreshToken[]
+  audit_logs          AuditLog[]
+
+  @@index([tenant_id])
+  @@index([email])
+  @@index([status])
+  @@map("users")
+}
+
+// ──────────────────────────────────────────────
+// ROLES
+// ──────────────────────────────────────────────
+model Role {
+  id            String           @id @default(uuid())
+  tenant_id     String?          // null indica un rol global de la plataforma
+  tenant        Tenant?          @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  is_system_role Boolean         @default(false)
+  is_active     Boolean          @default(true)
+  created_at    DateTime         @default(now())
+  updated_at    DateTime         @updatedAt
+  permissions   RolePermission[]
+  users         UserRole[]
+
+  @@index([tenant_id])
+  @@map("roles")
+}
+
+// ──────────────────────────────────────────────
+// PERMISOS
+// ──────────────────────────────────────────────
+model Permission {
+  id          String           @id @default(uuid())
+  code        String           @unique // e.g. "users.create"
+  name        String
+  description String?
+  module      String           // e.g. "users"
+  action      String           // e.g. "create"
+  is_active   Boolean          @default(true)
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+// ──────────────────────────────────────────────
+// RELACIÓN ROLES - PERMISOS
+// ──────────────────────────────────────────────
+model RolePermission {
+  id            String     @id @default(uuid())
+  role_id       String
+  role          Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission_id String
+  permission    Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  created_at    DateTime   @default(now())
+
+  @@unique([role_id, permission_id])
+  @@index([role_id])
+  @@index([permission_id])
+  @@map("role_permissions")
+}
+
+// ──────────────────────────────────────────────
+// RELACIÓN USUARIOS - ROLES
+// ──────────────────────────────────────────────
+model UserRole {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role_id    String
+  role       Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@unique([user_id, role_id])
+  @@index([user_id])
+  @@index([role_id])
+  @@map("user_roles")
+}
+
+// ──────────────────────────────────────────────
+// REFRESH TOKENS (SESIONES ACTIVAS)
+// ──────────────────────────────────────────────
+model RefreshToken {
+  id            String    @id @default(uuid())
+  user_id       String
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  token_hash    String
+  expires_at    DateTime
+  revoked_at    DateTime?
+  created_at    DateTime  @default(now())
+  created_by_ip String?
+  user_agent    String?
+
+  @@index([user_id])
+  @@index([token_hash])
+  @@map("refresh_tokens")
+}
+
+// ──────────────────────────────────────────────
+// SUSCRIPCIONES
+// ──────────────────────────────────────────────
+model Subscription {
+  id            String    @id @default(uuid())
+  tenant_id     String
+  tenant        Tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  plan_id       String
+  plan          Plan      @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  status        String    // trial, active, past_due, cancelled, expired
+  start_date    DateTime
+  end_date      DateTime
+  trial_ends_at DateTime?
+  cancelled_at  DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  @@index([tenant_id])
+  @@index([plan_id])
+  @@map("subscriptions")
+}
+
+// ──────────────────────────────────────────────
+// CONFIGURACIÓN DE TENANTS
+// ──────────────────────────────────────────────
+model TenantSetting {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  key        String
+  value      String
+  value_type String   // string, number, boolean, json
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([tenant_id, key])
+  @@index([tenant_id])
+  @@map("tenant_settings")
+}
+
+// ──────────────────────────────────────────────
+// LOGS DE AUDITORÍA
+// ──────────────────────────────────────────────
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenant_id   String?
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [id], onDelete: SetNull)
+  user_id     String?
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  action      String
+  module      String
+  entity_name String
+  entity_id   String
+  old_value   String?  @db.Text
+  new_value   String?  @db.Text
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+// ──────────────────────────────────────────────
+// ELEMENTOS DE MENÚ DINÁMICO
+// ──────────────────────────────────────────────
+model MenuItem {
+  id                 String     @id @default(uuid())
+  parent_id          String?
+  parent             MenuItem?  @relation("MenuItemHierarchy", fields: [parent_id], references: [id], onDelete: Cascade)
+  children           MenuItem[] @relation("MenuItemHierarchy")
+  code               String     @unique
+  label              String
+  route              String
+  icon               String?
+  required_permission String?
+  order              Int        @default(0)
+  is_active          Boolean    @default(true)
+
+  @@map("menu_items")
+}
+
+// ──────────────────────────────────────────────
+// PAGOS Y FACTURACIÓN
+// ──────────────────────────────────────────────
+model Payment {
+  id             String   @id @default(uuid())
+  tenant_id      String
+  tenant         Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  amount         Decimal  @db.Decimal(10, 2)
+  currency       String   @default("USD")
+  status         String   // pending, completed, failed
+  gateway        String   // paypal, stripe, mock
+  transaction_id String?  @unique // ID de transacción/orden del procesador
+  payer_email    String?
+  payer_name     String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@map("payments")
+  @@index([tenant_id])
+}
+
+// ──────────────────────────────────────────────
+// PARÁMETROS DE IMPUESTOS
+// ──────────────────────────────────────────────
+model TaxSetting {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name       String
+  rate       Decimal  @db.Decimal(5, 2)
+  is_active  Boolean  @default(true)
+  is_default Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([tenant_id, name])
+  @@index([tenant_id])
+  @@map("tax_settings")
+}
+
+// ──────────────────────────────────────────────
+// SISTEMAS Y LÍNEAS
+// ──────────────────────────────────────────────
+model CatalogSystem {
+  id            String        @id @default(uuid())
+  tenant_id     String?
+  tenant        Tenant?        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  is_active     Boolean       @default(true)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  catalog_items          CatalogItem[]
+  engineering_templates  EngineeringTemplate[]
+
+  @@unique([tenant_id, name])
+  @@index([tenant_id])
+  @@map("catalog_systems")
+}
+
+// ──────────────────────────────────────────────
+// ACABADOS Y COLORES
+// ──────────────────────────────────────────────
+model CatalogFinish {
+  id               String   @id @default(uuid())
+  tenant_id        String?
+  tenant           Tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name             String
+  code             String?
+  price_multiplier Decimal  @default(1.00) @db.Decimal(5, 2)
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@unique([tenant_id, name])
+  @@index([tenant_id])
+  @@map("catalog_finishes")
+}
+
+// ──────────────────────────────────────────────
+// ARTÍCULOS MAESTROS DEL CATÁLOGO
+// ──────────────────────────────────────────────
+model CatalogItem {
+  id               String         @id @default(uuid())
+  tenant_id        String?
+  tenant           Tenant?         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  code             String
+  name             String
+  description      String?
+  type             String         // profile, glass, accessory, supply
+  unit             String         // m, m2, u, kg, etc.
+  cost             Decimal        @db.Decimal(10, 2)
+  image            String?        @db.Text
+  is_active        Boolean        @default(true)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+
+  // Campos específicos de Perfiles
+  weight_per_meter Decimal?       @db.Decimal(6, 3)
+  standard_length  Decimal?       @db.Decimal(5, 2)
+  system_id        String?
+  system           CatalogSystem? @relation(fields: [system_id], references: [id], onDelete: SetNull)
+
+  // Campos específicos de Vidrios
+  thickness_mm     Decimal?       @db.Decimal(4, 1)
+  glass_type       String?        // monolithic, tempered, laminated, double
+  weight_per_m2    Decimal?       @db.Decimal(6, 3)
+
+  // Relación inversa con Ingeniería
+  engineering_components EngineeringComponent[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id])
+  @@index([type])
+  @@map("catalog_items")
+}
+
+// ──────────────────────────────────────────────
+// CONFIGURACIÓN GLOBAL DE PLATAFORMA
+// ──────────────────────────────────────────────
+model PlatformSetting {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  value      String
+  value_type String   // string, number, boolean, json
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+// ──────────────────────────────────────────────
+// ENUMS DE INGENIERÍA
+// ──────────────────────────────────────────────
+enum VariableType {
+  NUMBER
+  STRING
+  BOOLEAN
+  LIST
+}
+
+enum ComponentType {
+  PROFILE
+  GLASS
+  ACCESSORY
+  SUPPLY
+  LABOR
+}
+
+enum RuleAction {
+  INCLUDE
+  EXCLUDE
+  OVERRIDE_FORMULA
+}
+
+// ──────────────────────────────────────────────
+// PLANTILLAS DE INGENIERÍA
+// ──────────────────────────────────────────────
+model EngineeringTemplate {
+  id                  String    @id @default(uuid())
+  tenant_id           String?
+  tenant              Tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  system_id           String?
+  system              CatalogSystem? @relation(fields: [system_id], references: [id], onDelete: SetNull)
+  name                String
+  code                String
+  description         String?
+  image               String?   @db.Text
+  is_active           Boolean   @default(true)
+  source_template_id  String?
+  source_template     EngineeringTemplate?  @relation("TemplateCloneOrigin", fields: [source_template_id], references: [id], onDelete: SetNull)
+  cloned_templates    EngineeringTemplate[] @relation("TemplateCloneOrigin")
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  variables           EngineeringVariable[]
+  components          EngineeringComponent[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id])
+  @@index([source_template_id])
+  @@map("engineering_templates")
+}
+
+// ──────────────────────────────────────────────
+// VARIABLES DE ENTRADA DE INGENIERÍA
+// ──────────────────────────────────────────────
+model EngineeringVariable {
+  id            String       @id @default(uuid())
+  template_id   String
+  template      EngineeringTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  name          String       // Nombre interno: ANCHO, ALTO, COLOR
+  label         String       // Etiqueta UI: "Ancho del vano"
+  type          VariableType
+  default_value String?
+  is_required   Boolean      @default(true)
+  min_value     Decimal?     @db.Decimal(10, 2)
+  max_value     Decimal?     @db.Decimal(10, 2)
+  list_options  Json?        // Solo para tipo LIST: ["Opción1", "Opción2"]
+  order         Int          @default(0)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  @@unique([template_id, name])
+  @@index([template_id])
+  @@map("engineering_variables")
+}
+
+// ──────────────────────────────────────────────
+// COMPONENTES DEL DESGLOSE
+// ──────────────────────────────────────────────
+model EngineeringComponent {
+  id              String        @id @default(uuid())
+  template_id     String
+  template        EngineeringTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  catalog_item_id String?
+  catalog_item    CatalogItem?  @relation(fields: [catalog_item_id], references: [id], onDelete: SetNull)
+  type            ComponentType
+  name            String        // "Jamba", "Vidrio Fijo", "Felpa"
+  description     String?
+  order           Int           @default(0)
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  formula         EngineeringFormula?
+  rules           EngineeringRule[]
+
+  @@index([template_id])
+  @@index([catalog_item_id])
+  @@map("engineering_components")
+}
+
+// ──────────────────────────────────────────────
+// FÓRMULAS DE CÁLCULO (DSL)
+// ──────────────────────────────────────────────
+model EngineeringFormula {
+  id               String   @id @default(uuid())
+  component_id     String   @unique
+  component        EngineeringComponent @relation(fields: [component_id], references: [id], onDelete: Cascade)
+  quantity_formula String   @default("1")    // Ej: "2", "NAVES * 2"
+  width_formula    String?  // Ej: "ANCHO / 2 - 3.5"
+  height_formula   String?  // Ej: "ALTO - HOLGURA * 2"
+  length_formula   String?  // Para perfiles lineales
+  area_formula     String?  // Para vidrios (m²)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@map("engineering_formulas")
+}
+
+// ──────────────────────────────────────────────
+// REGLAS CONDICIONALES DE INGENIERÍA
+// ──────────────────────────────────────────────
+model EngineeringRule {
+  id               String    @id @default(uuid())
+  component_id     String
+  component        EngineeringComponent @relation(fields: [component_id], references: [id], onDelete: Cascade)
+  condition        String    // Expresión DSL: "ALTO > 1500"
+  action           RuleAction
+  override_formula Json?     // Fórmulas alternativas si action = OVERRIDE_FORMULA
+  priority         Int       @default(0)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  @@index([component_id])
+  @@map("engineering_rules")
+}

@@ -1,0 +1,165 @@
+<div class="space-y-6 max-w-4xl mx-auto">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-3xl font-extrabold text-white tracking-tight">Ajustes de Plataforma</h1>
+    <p class="text-sm text-slate-400 mt-1">Configura los parámetros globales y pasarelas de pago de Siscop Next.</p>
+  </div>
+
+  <!-- Notifications -->
+  @if (successMessage()) {
+    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Form Settings -->
+  <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="space-y-6" id="settingsForm">
+    <!-- SaaS General Configurations -->
+    <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+      <div class="border-b border-slate-800 pb-3">
+        <h2 class="text-lg font-bold text-white">Parámetros de Suscripción y Operación</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Controla los tiempos de prueba y el estado general de Siscop Next.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Default Trial Days -->
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Días de Prueba por Defecto (Trial)</label>
+          <input 
+            type="number" 
+            formControlName="DEFAULT_TRIAL_DAYS"
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all"
+            placeholder="ej: 30"
+          />
+          @if (settingsForm.get('DEFAULT_TRIAL_DAYS')?.touched && settingsForm.get('DEFAULT_TRIAL_DAYS')?.invalid) {
+            <span class="text-xs text-red-400 mt-1 block">El valor debe ser un número positivo</span>
+          }
+        </div>
+
+        <!-- Maintenance Mode Checkbox -->
+        <div class="flex items-center gap-3 bg-slate-950/40 p-4 border border-slate-800/80 rounded-2xl md:self-end">
+          <input 
+            type="checkbox" 
+            formControlName="MAINTENANCE_MODE" 
+            id="maintenanceModeCheck"
+            class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 bg-slate-950 border-slate-800 cursor-pointer"
+          />
+          <div class="cursor-pointer">
+            <label for="maintenanceModeCheck" class="text-sm font-semibold text-white block">Modo de Mantenimiento</label>
+            <span class="text-[10px] text-slate-400">Si está activo, solo los Super Admins podrán acceder.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Payments Configuration -->
+    <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+      <div class="border-b border-slate-800 pb-3">
+        <h2 class="text-lg font-bold text-white">Pasarela de Pagos (PayPal)</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Define las credenciales para recibir los pagos de suscripciones de los Tenants.</p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Modo de Operación -->
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Modo de Operación</label>
+          <select 
+            formControlName="PAYPAL_MODE"
+            class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all cursor-pointer"
+          >
+            <option value="sandbox">Sandbox (Pruebas)</option>
+            <option value="live">Live (Producción)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800/80">
+          <!-- Sandbox Credentials -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-bold text-amber-500 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              Credenciales Sandbox
+            </h3>
+            
+            <div>
+              <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Sandbox Client ID</label>
+              <input 
+                type="text" 
+                formControlName="PAYPAL_SANDBOX_CLIENT_ID"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none text-xs transition-all"
+                placeholder="Sandbox Client ID"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Sandbox Secret</label>
+              <input 
+                type="password" 
+                formControlName="PAYPAL_SANDBOX_CLIENT_SECRET"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-amber-500 focus:outline-none text-xs transition-all"
+                placeholder="••••••••••••••••"
+              />
+            </div>
+          </div>
+
+          <!-- Live Credentials -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-bold text-emerald-500 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Credenciales Live
+            </h3>
+            
+            <div>
+              <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Live Client ID</label>
+              <input 
+                type="text" 
+                formControlName="PAYPAL_LIVE_CLIENT_ID"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-emerald-500 focus:outline-none text-xs transition-all"
+                placeholder="Live Client ID (Opcional si usas sandbox)"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Live Secret</label>
+              <input 
+                type="password" 
+                formControlName="PAYPAL_LIVE_CLIENT_SECRET"
+                class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-emerald-500 focus:outline-none text-xs transition-all"
+                placeholder="••••••••••••••••"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Footer Actions -->
+    <div class="flex items-center justify-end gap-3">
+      <button 
+        type="submit" 
+        [disabled]="isLoading() || settingsForm.invalid"
+        class="px-6 py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2"
+      >
+        @if (isLoading()) {
+          <span>Guardando...</span>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+          <span>Guardar Ajustes</span>
+        }
+      </button>
+    </div>
+  </form>
+</div>

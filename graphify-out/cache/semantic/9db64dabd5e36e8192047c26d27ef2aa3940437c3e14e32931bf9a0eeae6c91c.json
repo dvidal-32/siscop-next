@@ -1,0 +1,1 @@
+{"nodes": [{"id": "docker_compose_postgres", "label": "PostgreSQL Service", "file_type": "code", "source_file": "docker-compose.yml", "source_location": null}, {"id": "docker_compose_minio", "label": "MinIO Service", "file_type": "code", "source_file": "docker-compose.yml", "source_location": null}], "edges": [], "hyperedges": []}

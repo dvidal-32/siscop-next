@@ -1,0 +1,464 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Header when no template is selected -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" *ngIf="!templateId()">
+    <div>
+      <div class="flex items-center gap-2 text-slate-500 text-xs font-semibold">
+        <span class="text-slate-600 dark:text-slate-300">Ingeniería de Productos</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mt-2">
+        Variables y Fórmulas
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Selecciona una plantilla de producto para configurar sus variables y fórmulas de cálculo.
+      </p>
+    </div>
+  </div>
+
+  <!-- Header when template is selected -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" *ngIf="templateId() && template()">
+    <div>
+      <div class="flex items-center gap-2 text-slate-500 text-xs font-semibold">
+        <a routerLink="/engineering/templates" class="hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors">Plantillas de Productos</a>
+        <span>/</span>
+        <span class="text-slate-600 dark:text-slate-300">Variables y Fórmulas</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mt-2">
+        {{ template().name }}
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Configuración técnica para el código <span class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ template().code }}</span>.
+      </p>
+    </div>
+    <a 
+      [routerLink]="[]"
+      [queryParams]="{ templateId: null }"
+      class="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-xs border border-slate-200 dark:border-slate-700 shadow-sm transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+    >
+      Cambiar de plantilla
+    </a>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage()" class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-650 dark:text-rose-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+    </svg>
+    {{ errorMessage() }}
+  </div>
+
+  <div *ngIf="successMessage()" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-650 dark:text-emerald-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    {{ successMessage() }}
+  </div>
+
+  <!-- Workspace when NO template is selected -->
+  <div *ngIf="!templateId() && !isLoading()" class="space-y-6">
+    <div *ngIf="templates().length === 0" class="flex flex-col items-center justify-center p-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center shadow-lg">
+      <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 dark:text-indigo-400 mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">No hay plantillas configuradas</h3>
+      <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-6">Comienza creando una plantilla desde cero en Plantillas de Productos o importa un modelo de la Biblioteca.</p>
+      <a routerLink="/engineering/templates" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl font-medium text-sm transition-all border-none">
+        Ir a Plantillas
+      </a>
+    </div>
+
+    <div *ngIf="templates().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let t of templates()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all group">
+        <div>
+          <div class="flex items-start justify-between">
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {{ t.code }}
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 dark:text-white mt-4 group-hover:text-indigo-650 dark:group-hover:text-indigo-400 transition-colors">{{ t.name }}</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 h-10">{{ t.description || 'Sin descripción' }}</p>
+        </div>
+        <div class="mt-6">
+          <a 
+            [routerLink]="[]" 
+            [queryParams]="{ templateId: t.id }"
+            class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs border-none cursor-pointer transition-all flex items-center justify-center shadow-sm"
+          >
+            Configurar Fórmulas
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace when template is selected -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" *ngIf="templateId() && template()">
+    
+    <!-- Left Column: Navigation & Forms -->
+    <div class="space-y-6 lg:col-span-1">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+          <button 
+            (click)="setPanel('variables')"
+            [class]="activePanel() === 'variables' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-white bg-slate-100/40 dark:bg-slate-800/30' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-655 dark:hover:text-white'"
+            class="flex-1 py-4 text-sm font-bold border-none transition-all cursor-pointer bg-transparent"
+          >
+            Variables ({{ template()?.variables?.length || 0 }})
+          </button>
+          <button 
+            (click)="setPanel('components')"
+            [class]="activePanel() === 'components' ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-white bg-slate-100/40 dark:bg-slate-800/30' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-655 dark:hover:text-white'"
+            class="flex-1 py-4 text-sm font-bold border-none transition-all cursor-pointer bg-transparent"
+          >
+            Componentes ({{ template()?.components?.length || 0 }})
+          </button>
+        </div>
+
+        <!-- Tab 1: Variables List & Add Form -->
+        <div *ngIf="activePanel() === 'variables'" class="p-5 space-y-6">
+          <div class="space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+              {{ selectedVariable() ? 'Editar Variable' : 'Agregar Variable' }}
+            </h3>
+            <form [formGroup]="variableForm" (ngSubmit)="addVariable()" class="space-y-3">
+              <input type="text" formControlName="name" placeholder="CÓDIGO (ej: ANCHO, NAVES)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-all uppercase">
+              <input type="text" formControlName="label" placeholder="Etiqueta (ej: Ancho del vano)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-all">
+              
+              <div class="flex gap-2">
+                <select formControlName="type" class="flex-1 px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500 transition-all cursor-pointer">
+                  <option value="NUMBER">Número</option>
+                  <option value="LIST">Lista (Catálogo)</option>
+                  <option value="BOOLEAN">Booleano</option>
+                  <option value="STRING">Texto</option>
+                </select>
+                <input type="number" formControlName="order" placeholder="Orden" class="w-20 px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-all">
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input type="checkbox" formControlName="isRequired" id="isRequired" class="w-4 h-4 rounded border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 accent-indigo-600 focus:ring-0">
+                <label for="isRequired" class="text-xs font-semibold text-slate-500 dark:text-slate-400 select-none cursor-pointer">Requerida</label>
+              </div>
+
+              <div class="flex gap-2">
+                <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs border-none cursor-pointer transition-all active:scale-[0.98]">
+                  {{ selectedVariable() ? 'Guardar Cambios' : 'Agregar Variable' }}
+                </button>
+                <button *ngIf="selectedVariable()" type="button" (click)="cancelEditVariable()" class="px-3 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-bold text-xs border border-slate-200 dark:border-slate-700 cursor-pointer transition-all">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Variables List -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-5 space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Lista de Variables</h3>
+            <div *ngIf="template()?.variables?.length === 0" class="text-center py-6 text-xs text-slate-500 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              No hay variables agregadas.
+            </div>
+            <div *ngFor="let v of template()?.variables; let i = index; let isFirst = first; let isLast = last" 
+                 [class]="selectedVariable()?.id === v.id ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950'"
+                 class="flex items-center justify-between p-3 border rounded-xl transition-all"
+            >
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-800 dark:text-white text-xs">{{ v.name }}</span>
+                  <span class="text-[10px] bg-slate-150 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-mono font-bold">{{ v.type }}</span>
+                </div>
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">{{ v.label }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <!-- Subir posición -->
+                <button *ngIf="!isFirst" (click)="moveVariable(i, 'up')" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Subir posición">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                  </svg>
+                </button>
+                <!-- Bajar posición -->
+                <button *ngIf="!isLast" (click)="moveVariable(i, 'down')" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Bajar posición">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+                <!-- Separador visual -->
+                <span class="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-0.5"></span>
+                <!-- Editar -->
+                <button (click)="editVariable(v)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Editar variable">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                </button>
+                <!-- Eliminar -->
+                <button (click)="removeVariable(v.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 border-none cursor-pointer transition-colors" title="Eliminar variable">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0-.34-9m9.02-2-.34 22.855H5.25m16.5 0a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5m16.5 0V6M3.75 6h16.5M12 3v3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Components List & Add Form -->
+        <div *ngIf="activePanel() === 'components'" class="p-5 space-y-6">
+          <div class="space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+              {{ selectedComponentToEdit() ? 'Editar Componente' : 'Agregar Componente' }}
+            </h3>
+            <form [formGroup]="componentForm" (ngSubmit)="addComponent()" class="space-y-3">
+              <input type="text" formControlName="name" placeholder="Nombre (ej: Jamba, Vidrio Fijo)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-all">
+              
+              <div class="flex gap-2">
+                <select formControlName="type" class="flex-1 px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500 transition-all cursor-pointer">
+                  <option value="PROFILE">Perfil</option>
+                  <option value="GLASS">Vidrio</option>
+                  <option value="ACCESSORY">Accesorio</option>
+                  <option value="SUPPLY">Insumo</option>
+                  <option value="LABOR">Mano de Obra</option>
+                </select>
+                <input type="number" formControlName="order" placeholder="Orden" class="w-20 px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-all">
+              </div>
+
+              <!-- Catalog Item Link -->
+              <select formControlName="catalogItemId" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500 transition-all cursor-pointer">
+                <option value="">-- Enlazar a artículo catálogo (opcional) --</option>
+                <option *ngFor="let item of catalogItems()" [value]="item.id">
+                  [{{ item.code }}] {{ item.name }} ({{ item.type }})
+                </option>
+              </select>
+
+              <div class="flex gap-2">
+                <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs border-none cursor-pointer transition-all active:scale-[0.98]">
+                  {{ selectedComponentToEdit() ? 'Guardar Cambios' : 'Agregar Componente' }}
+                </button>
+                <button *ngIf="selectedComponentToEdit()" type="button" (click)="cancelEditComponent()" class="px-3 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-bold text-xs border border-slate-200 dark:border-slate-700 cursor-pointer transition-all">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Components List -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-5 space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Componentes del Desglose</h3>
+            <div *ngIf="template()?.components?.length === 0" class="text-center py-6 text-xs text-slate-500 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              No hay componentes agregados.
+            </div>
+            <div 
+              *ngFor="let c of template()?.components; let idx = index; let isFirstComp = first; let isLastComp = last" 
+              (click)="selectComponent(c)"
+              [class]="selectedComponent()?.id === c.id ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:border-slate-300 dark:hover:border-slate-700'"
+              class="flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all"
+            >
+              <div>
+                <span class="font-bold text-slate-800 dark:text-white text-xs block">{{ c.name }}</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-[9px] bg-slate-100 dark:bg-slate-850 text-slate-555 dark:text-slate-400 px-1 py-0.5 rounded font-mono uppercase font-bold">{{ getComponentTypeLabel(c.type) }}</span>
+                  <span *ngIf="c.catalog_item" class="text-[9px] text-slate-500">→ {{ c.catalog_item.code }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5" (click)="$event.stopPropagation()">
+                <!-- Subir posición -->
+                <button *ngIf="!isFirstComp" (click)="moveComponent(idx, 'up')" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Subir posición">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                  </svg>
+                </button>
+                <!-- Bajar posición -->
+                <button *ngIf="!isLastComp" (click)="moveComponent(idx, 'down')" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Bajar posición">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+                <!-- Separador visual -->
+                <span class="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-0.5"></span>
+                <!-- Editar propiedades -->
+                <button (click)="editComponentDetails(c)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Editar propiedades">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                </button>
+                <!-- Eliminar -->
+                <button (click)="removeComponent(c.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 border-none cursor-pointer transition-colors" title="Eliminar componente">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0-.34-9m9.02-2-.34 22.855H5.25m16.5 0a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5m16.5 0V6M3.75 6h16.5M12 3v3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Columns: Formulas & Rules Editor -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Placeholder when nothing is selected -->
+      <div *ngIf="!selectedComponent() && activePanel() === 'components'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center h-full flex flex-col items-center justify-center shadow-xl">
+        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-855 rounded-2xl flex items-center justify-center text-slate-500 mb-4 border border-slate-200 dark:border-slate-800/80">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 3 3m0 0 3-3m-3 3v6m-9-10.5h18" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Editor de Fórmulas y Reglas</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm">Selecciona un componente del listado de la izquierda para programar sus dimensiones de corte, cantidad y condiciones lógicas.</p>
+      </div>
+
+      <!-- Variable Panel Placeholder -->
+      <div *ngIf="activePanel() === 'variables'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center h-full flex flex-col items-center justify-center shadow-xl">
+        <div class="w-16 h-16 bg-indigo-500/5 rounded-2xl flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-4 border border-indigo-500/10">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Variables de Entrada</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm">Las variables que agregues se usarán como entradas al cotizar y se inyectarán en las fórmulas de los componentes. Puedes ver la lista a la izquierda.</p>
+      </div>
+
+      <!-- Editor Workspace -->
+      <div *ngIf="selectedComponent() && activePanel() === 'components'" class="space-y-6">
+        
+        <!-- Component Header Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Editor Técnico</span>
+            <h2 class="text-xl font-extrabold text-slate-850 dark:text-white mt-1">{{ selectedComponent().name }}</h2>
+          </div>
+          <span class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-300 uppercase font-mono">
+            {{ getComponentTypeLabel(selectedComponent().type) }}
+          </span>
+        </div>
+
+        <!-- Formulas Section -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 class="text-base font-extrabold text-slate-850 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-indigo-500 dark:text-indigo-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-3-9v9M10.5 3v18mm-7.5-6h18" />
+            </svg>
+            Fórmulas de Cálculo
+          </h3>
+
+          <form [formGroup]="formulaForm" (ngSubmit)="saveFormula()" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Qty Formula -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fórmula de Cantidad</label>
+                <input type="text" formControlName="quantityFormula" placeholder="Ej: 2, NAVES * 2" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono">
+              </div>
+
+              <!-- Width Formula -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fórmula de Ancho (mm)</label>
+                <input type="text" formControlName="widthFormula" placeholder="Ej: ANCHO / 2 - 15" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono">
+              </div>
+
+              <!-- Height Formula -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fórmula de Alto (mm)</label>
+                <input type="text" formControlName="heightFormula" placeholder="Ej: ALTO - 10" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono">
+              </div>
+
+              <!-- Length Formula -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fórmula de Largo (mm - Perfiles)</label>
+                <input type="text" formControlName="lengthFormula" placeholder="Ej: ALTO - 10" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono">
+              </div>
+
+              <!-- Area Formula -->
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Fórmula de Área (m² - Vidrios)</label>
+                <input type="text" formControlName="areaFormula" placeholder="Ej: (ANCHO * ALTO) / 1000000" class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono">
+              </div>
+            </div>
+
+            <button type="submit" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs border-none cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              Guardar Fórmulas
+            </button>
+          </form>
+        </div>
+
+        <!-- Rules Section -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 class="text-base font-extrabold text-slate-850 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-indigo-500 dark:text-indigo-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.477 8.004 1.405a8.966 8.966 0 0 1-2.28 14.516M12 3a9 9 0 0 0 0 18M12 3v7.5M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 12-9" />
+            </svg>
+            Reglas Condicionales
+          </h3>
+
+          <!-- Rules List -->
+          <div *ngIf="selectedComponent()?.rules?.length > 0" class="space-y-2">
+            <div *ngFor="let rule of selectedComponent().rules" 
+                 [class]="selectedRule()?.id === rule.id ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950'"
+                 class="flex items-center justify-between p-3 border rounded-xl animate-fade-in border-l-4 border-l-indigo-500"
+            >
+              <div>
+                <span class="text-xs text-slate-700 dark:text-slate-300 font-mono font-bold block">{{ rule.condition }}</span>
+                <span class="text-[9px] font-semibold text-slate-500 uppercase mt-0.5 block">
+                  Acción: {{ rule.action }} | Prioridad: {{ rule.priority }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button (click)="editRule(rule)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-600 border-none cursor-pointer transition-colors" title="Editar regla">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                </button>
+                <button (click)="removeRule(rule.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 border-none cursor-pointer transition-colors" title="Eliminar regla">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0-.34-9m9.02-2-.34 22.855H5.25m16.5 0a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5m16.5 0V6M3.75 6h16.5M12 3v3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Rule Form -->
+          <form [formGroup]="ruleForm" (ngSubmit)="addRule()" class="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800/80">
+            <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ selectedRule() ? 'Editar Regla' : 'Agregar Regla' }}
+            </h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <!-- Condition input -->
+              <div class="md:col-span-2">
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Condición</label>
+                <input type="text" formControlName="condition" placeholder="Condición (ej: ALTO > 1500)" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-650 focus:outline-none focus:border-indigo-500 transition-all font-mono uppercase">
+              </div>
+              
+              <!-- Action select -->
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Acción</label>
+                <select formControlName="action" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500 transition-all cursor-pointer">
+                  <option value="INCLUDE">Incluir</option>
+                  <option value="EXCLUDE">Excluir</option>
+                </select>
+              </div>
+
+              <!-- Priority input -->
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Prioridad</label>
+                <input type="number" formControlName="priority" placeholder="Prioridad" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 dark:placeholder:text-slate-650 focus:outline-none focus:border-indigo-500 transition-all">
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button type="submit" class="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-bold text-xs border border-slate-200 dark:border-slate-700 cursor-pointer transition-all active:scale-[0.98]">
+                {{ selectedRule() ? 'Guardar Cambios' : 'Agregar Regla' }}
+              </button>
+              <button *ngIf="selectedRule()" type="button" (click)="cancelEditRule()" class="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-bold text-xs border border-slate-200 dark:border-slate-700 cursor-pointer transition-all">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

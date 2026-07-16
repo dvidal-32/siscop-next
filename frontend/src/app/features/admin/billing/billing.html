@@ -1,0 +1,253 @@
+<div class="space-y-6 max-w-7xl mx-auto pb-10">
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-3xl font-extrabold text-white tracking-tight">Facturación y Planes</h1>
+    <p class="text-sm text-slate-400 mt-1">Gestiona tu suscripción activa, revisa tu historial de facturas y realiza pagos seguros en línea.</p>
+  </div>
+
+  <!-- Subscription Summary Card -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Summary Details -->
+    <div class="lg:col-span-2 bg-gradient-to-br from-slate-900/60 to-slate-900/30 border border-slate-800 rounded-3xl p-6 relative overflow-hidden shadow-xl">
+      <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl"></div>
+      
+      <div class="relative z-10 flex flex-col h-full justify-between space-y-6">
+        <div>
+          <span class="text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
+            Suscripción Activa
+          </span>
+          <h2 class="text-2xl font-bold text-white mt-4 flex items-center gap-2">
+            Plan {{ subInfo()?.planName || 'Cargando...' }}
+            <span 
+              [class]="subInfo()?.subscriptionStatus === 'active' 
+                ? 'px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                : 'px-2 py-0.5 rounded-full text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20'"
+            >
+              {{ subInfo()?.subscriptionStatus === 'active' ? 'AL DÍA' : 'SIN PAGOS' }}
+            </span>
+          </h2>
+          <p class="text-slate-400 text-sm mt-2 max-w-md">
+            Suscrito para la empresa <strong class="text-slate-200">{{ subInfo()?.tenantName }}</strong>. Este plan incluye accesos completos a los módulos de usuarios, roles e historial de auditoría.
+          </p>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-slate-800/80 pt-5 text-xs">
+          <div>
+            <span class="text-slate-500 block mb-1">Precio</span>
+            <span class="text-white text-lg font-bold">
+              ${{ subInfo()?.planPrice || '0.00' }} / {{ subInfo()?.billingCycle === 'monthly' ? 'mes' : 'año' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-slate-500 block mb-1">Inicio de Periodo</span>
+            <span class="text-white font-medium">
+              {{ subInfo()?.startDate ? (subInfo()?.startDate | date:'dd/MM/yyyy') : '-' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-slate-500 block mb-1">Próxima Renovación</span>
+            <span class="text-indigo-400 font-bold">
+              {{ subInfo()?.endDate ? (subInfo()?.endDate | date:'dd/MM/yyyy') : '-' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Trigger Panel -->
+    <div class="bg-slate-900/40 border border-slate-850 p-6 rounded-3xl flex flex-col justify-between space-y-6 shadow-xl">
+      <div>
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Renovar Suscripción</h3>
+        <p class="text-xs text-slate-500 mt-1">Realiza tu pago hoy para añadir 30 días adicionales de vigencia a tu plataforma.</p>
+      </div>
+
+      <!-- Payment Status Alert -->
+      @if (paymentStatus()) {
+        <div 
+          [class]="paymentStatus()?.success 
+            ? 'p-3.5 rounded-xl text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+            : 'p-3.5 rounded-xl text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20'"
+          class="flex items-start gap-2 relative"
+        >
+          <span class="flex-1">{{ paymentStatus()?.message }}</span>
+          <button (click)="clearStatus()" class="text-slate-400 hover:text-white shrink-0 -mt-0.5">×</button>
+        </div>
+      }
+
+      <div class="space-y-3">
+        <!-- Live PayPal Button Container -->
+        <div id="paypal-button-container" class="w-full min-h-[45px] transition-all">
+          <div class="animate-pulse bg-slate-800 rounded-xl h-11 w-full flex items-center justify-center text-xs text-slate-500 border border-slate-750">
+            Cargando pasarela PayPal...
+          </div>
+        </div>
+
+        <!-- Dev Simulator Fallback Trigger -->
+        <div class="pt-2 text-center border-t border-slate-850/60">
+          <span class="text-[10px] text-slate-500 block mb-2 font-mono uppercase tracking-wider">¿Entorno de Desarrollo?</span>
+          <button 
+            (click)="openSimulator()"
+            [disabled]="isProcessing()"
+            class="w-full py-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            Simular Pago con PayPal (Mock)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payments History Section -->
+  <div class="space-y-4">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 text-slate-400">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-3.75 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+      </svg>
+      Historial de Pagos Recibidos
+    </h3>
+
+    <div class="bg-slate-900/40 border border-slate-850 rounded-3xl overflow-hidden shadow-xl">
+      <p-table 
+        [value]="payments()" 
+        [paginator]="true" 
+        [rows]="10" 
+        styleClass="p-datatable-striped" 
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr class="bg-slate-950/20 text-slate-400 text-xs font-bold uppercase border-b border-slate-850">
+            <th class="py-4.5 px-6">ID Transacción</th>
+            <th class="py-4.5 px-6">Plataforma</th>
+            <th class="py-4.5 px-6">Paga/Cliente</th>
+            <th class="py-4.5 px-6">Monto</th>
+            <th class="py-4.5 px-6">Fecha</th>
+            <th class="py-4.5 px-6">Estado</th>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="body" let-payment>
+          <tr class="hover:bg-slate-900/20 transition-all border-b border-slate-850/30 text-sm">
+            <td class="py-4 px-6 font-mono text-xs text-white font-medium">
+              {{ payment.transaction_id || payment.id }}
+            </td>
+            <td class="py-4 px-6">
+              @if (payment.gateway === 'paypal') {
+                <span class="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider">
+                  PayPal
+                </span>
+              } @else if (payment.gateway === 'mock_paypal') {
+                <span class="inline-flex items-center gap-1 bg-slate-850 text-slate-400 border border-slate-800 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider font-mono">
+                  Mock PayPal
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs font-medium uppercase">
+                  {{ payment.gateway }}
+                </span>
+              }
+            </td>
+            <td class="py-4 px-6">
+              <div class="text-white font-semibold">{{ payment.payer_name || 'N/A' }}</div>
+              <div class="text-xs text-slate-500 font-mono">{{ payment.payer_email || '-' }}</div>
+            </td>
+            <td class="py-4 px-6 text-white font-bold font-mono">
+              ${{ payment.amount }} {{ payment.currency }}
+            </td>
+            <td class="py-4 px-6 text-slate-400 text-xs font-mono">
+              {{ payment.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
+            </td>
+            <td class="py-4 px-6">
+              <span 
+                [class]="payment.status === 'completed' 
+                  ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wide border' 
+                  : 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wide border'"
+              >
+                {{ payment.status }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="py-16 text-center text-slate-500">
+              <div class="max-w-md mx-auto space-y-2">
+                <i class="pi pi-credit-card text-2xl text-slate-600 block mb-2"></i>
+                <h4 class="text-sm font-bold text-white">Sin transacciones</h4>
+                <p class="text-xs text-slate-500">Aún no se han registrado cobros ni facturas para tu empresa.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- Developer PayPal Payment Simulator Modal -->
+  @if (showSimulator()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-slate-950/20">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+              Simulador de Pago PayPal (Local)
+            </h3>
+            <p class="text-[10px] text-slate-500 mt-0.5 font-mono">Modo de Integración y Prueba</p>
+          </div>
+          <button (click)="closeSimulator()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-5">
+          <div class="text-xs text-slate-400 space-y-2 leading-relaxed bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+            <p>Este simulador emula la respuesta de la API de PayPal hacia el backend de Siscop sin requerir una conexión real al Sandbox de PayPal.</p>
+            <p class="text-slate-500">Al hacer clic en <strong class="text-slate-300">Procesar Simulación</strong>, el backend capturará la orden ficticia, registrará el monto del plan y renovará tu suscripción activa por 30 días.</p>
+          </div>
+
+          <div class="space-y-3.5 text-xs">
+            <div>
+              <span class="text-slate-500 block mb-1">Monto a Facturar</span>
+              <span class="text-white font-bold text-sm font-mono">
+                ${{ subInfo()?.planPrice || '29.99' }} USD
+              </span>
+            </div>
+            <div>
+              <span class="text-slate-500 block mb-1">ID Orden PayPal (Generado)</span>
+              <span class="text-amber-400 font-mono font-bold block bg-slate-950 px-3 py-2 rounded-xl border border-slate-850">
+                {{ simulatorOrderId() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-slate-950/20">
+          <button 
+            (click)="closeSimulator()"
+            class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button 
+            (click)="runSimulation()"
+            [disabled]="isProcessing()"
+            class="px-5 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5"
+          >
+            @if (isProcessing()) {
+              <span class="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+              Procesando...
+            } @else {
+              Procesar Simulación
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

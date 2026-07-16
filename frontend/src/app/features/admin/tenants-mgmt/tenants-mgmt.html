@@ -1,0 +1,123 @@
+<div class="space-y-6 max-w-5xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-white tracking-tight">Administración de Empresas (Tenants)</h1>
+      <p class="text-sm text-slate-400 mt-1">Supervisa las empresas registradas en la plataforma y activa aquellas con problemas de verificación.</p>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  @if (successMessage()) {
+    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Tenants Table Card -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <th class="py-4 px-6">Empresa / ID</th>
+            <th class="py-4 px-6">Contacto / Correo</th>
+            <th class="py-4 px-6">Plan Asignado</th>
+            <th class="py-4 px-6">Registro</th>
+            <th class="py-4 px-6">Estado</th>
+            <th class="py-4 px-6 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-850/60 text-sm">
+          @if (isLoading() && tenants().length === 0) {
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-550">
+                <div class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Cargando empresas...</span>
+                </div>
+              </td>
+            </tr>
+          } @else if (tenants().length === 0) {
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-400">
+                No se encontraron empresas registradas en la plataforma.
+              </td>
+            </tr>
+          } @else {
+            @for (tenant of tenants(); track tenant.id) {
+              <tr class="hover:bg-slate-900/20 transition-colors">
+                <!-- Name & Slug -->
+                <td class="py-4 px-6">
+                  <div class="font-semibold text-white">{{ tenant.name }}</div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs font-mono text-slate-500">{{ tenant.id }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 font-mono font-bold uppercase tracking-wider rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">{{ tenant.slug }}</span>
+                  </div>
+                </td>
+                <!-- Contact Email / Phone -->
+                <td class="py-4 px-6">
+                  <div class="text-white font-medium">{{ tenant.email || 'Sin correo' }}</div>
+                  @if (tenant.phone) {
+                    <div class="text-xs text-slate-400 mt-0.5">{{ tenant.phone }}</div>
+                  }
+                </td>
+                <!-- Plan -->
+                <td class="py-4 px-6 text-slate-300">
+                  <div class="flex flex-col">
+                    <span class="font-medium text-slate-200">{{ tenant.plan?.name || 'Ninguno' }}</span>
+                    <span class="text-xs text-slate-500 capitalize">{{ tenant.plan?.billing_cycle || '' }}</span>
+                  </div>
+                </td>
+                <!-- Registered Date -->
+                <td class="py-4 px-6 text-slate-300 font-mono text-xs">
+                  {{ tenant.created_at | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+                <!-- Status -->
+                <td class="py-4 px-6">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold" [ngClass]="getStatusClass(tenant.status)">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ getStatusLabel(tenant.status) }}
+                  </span>
+                </td>
+                <!-- Actions -->
+                <td class="py-4 px-6 text-right">
+                  @if (tenant.status === 'pending' && authService.hasPermission('tenants.activate')) {
+                    <button
+                      (click)="activateTenant(tenant)"
+                      [disabled]="isLoading()"
+                      class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-semibold text-xs shadow-lg shadow-emerald-950/20 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ml-auto"
+                      title="Activar manualmente"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                      </svg>
+                      <span>Activar</span>
+                    </button>
+                  } @else {
+                    <span class="text-xs text-slate-500 italic">No requiere acción</span>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

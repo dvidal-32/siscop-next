@@ -1,0 +1,322 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">Plantillas de Productos</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Define y configura los modelos base, sus variables y componentes de desglose técnico.</p>
+    </div>
+    <div class="flex gap-2">
+      <a 
+        routerLink="/engineering/library"
+        class="px-5 py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-sm shadow-sm active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2 border border-slate-200 dark:border-slate-700"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-indigo-500 dark:text-indigo-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Biblioteca Global
+      </a>
+      <button 
+        (click)="openCreate()"
+        class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2 border-none"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" />
+        </svg>
+        Nueva Plantilla
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage()" class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-650 dark:text-rose-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+    </svg>
+    {{ errorMessage() }}
+  </div>
+
+  <div *ngIf="successMessage()" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-650 dark:text-emerald-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    {{ successMessage() }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading() && templates().length === 0" class="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-md">
+    <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-slate-500 dark:text-slate-400 text-sm mt-4">Cargando plantillas de ingeniería...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && templates().length === 0" class="flex flex-col items-center justify-center p-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center shadow-lg">
+    <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 dark:text-indigo-400 mx-auto mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+      </svg>
+    </div>
+    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">No hay plantillas configuradas</h3>
+    <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-6">Comienza creando una plantilla desde cero o importa un modelo prediseñado de nuestra biblioteca global.</p>
+    <div class="flex gap-3 justify-center">
+      <a routerLink="/engineering/library" class="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-medium text-sm transition-all border border-slate-200 dark:border-slate-700 shadow-sm">
+        Explorar Biblioteca
+      </a>
+      <button (click)="openCreate()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all border-none">
+        Nueva Plantilla
+      </button>
+    </div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="templates().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let template of templates()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 rounded-2xl flex flex-col justify-between shadow-xl transition-all group overflow-hidden">
+      <div>
+        <!-- Image container / Placeholder -->
+        <div class="relative h-36 w-full bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800/80 overflow-hidden">
+          <img *ngIf="template.image" [src]="template.image" alt="Product Image" class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500" />
+          <div *ngIf="!template.image" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-10 h-10 text-indigo-500/30 dark:text-indigo-400/30">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+          
+          <!-- Badges absolute over image -->
+          <div class="absolute top-3 left-3 flex gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-900/80 backdrop-blur-sm text-white border border-white/15 shadow-sm uppercase">
+              {{ template.code }}
+            </span>
+            <span *ngIf="!template.is_active" class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/90 text-white shadow-sm">
+              Inactiva
+            </span>
+          </div>
+          
+          <div class="absolute top-3 right-3" *ngIf="template.source_template_id">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/95 text-white shadow-sm">
+              Importado
+            </span>
+          </div>
+        </div>
+
+        <div class="p-5">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-white mt-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ template.name }}</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 h-10">{{ template.description || 'Sin descripción' }}</p>
+
+          <div class="mt-4 flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/80 pt-4">
+            <span class="flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400 dark:text-slate-600">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0M3.75 6H7.5" />
+              </svg>
+              {{ template._count?.variables || 0 }} Variables
+            </span>
+            <span class="flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400 dark:text-slate-600">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0-3m0 3a1.5 1.5 0 0 0 0-3m0 3h12m0 0V3.75m0 9.75a1.5 1.5 0 0 1 0-3m0 3a1.5 1.5 0 0 0 0-3m0 3H6" />
+              </svg>
+              {{ template._count?.components || 0 }} Componentes
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 pb-5 flex gap-2">
+        <button 
+          (click)="navigateToFormulas(template.id)"
+          class="flex-1 px-3 py-2 bg-indigo-50 dark:bg-indigo-600/10 hover:bg-indigo-100 dark:hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-semibold text-xs border border-indigo-200 dark:border-indigo-500/20 transition-all cursor-pointer"
+        >
+          Editar Fórmulas
+        </button>
+        <button 
+          (click)="navigateToSimulator(template.id)"
+          class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-semibold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center justify-center"
+          title="Simulador de Desglose"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75 3 16.5m6.75-6.75L16.5 3c.477.477 1.07.75 1.75.75h3v3c0 .68-.273 1.273-.75 1.75L13.5 15.25m-3.75-5.5 1.5 1.5m-7.75-2 1.5 1.5" />
+          </svg>
+        </button>
+        <button 
+          (click)="openEdit(template)"
+          class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white rounded-xl font-semibold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center justify-center"
+          title="Editar Plantilla"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+          </svg>
+        </button>
+        <button 
+          (click)="deleteTemplate(template.id)"
+          class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-900/30 text-slate-650 dark:text-slate-350 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl font-semibold text-xs border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-900/50 transition-all cursor-pointer flex items-center justify-center"
+          title="Desactivar Plantilla"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0-.34-9m9.02-2-.34 22.855H5.25m16.5 0a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5m16.5 0V6M3.75 6h16.5M12 3v3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div *ngIf="showModal()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden dynamic-modal-theme animate-fade-in">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+          <h2 class="text-xl font-extrabold text-slate-850 dark:text-white">
+            {{ selectedTemplate() ? 'Editar Plantilla' : 'Nueva Plantilla' }}
+          </h2>
+        </div>
+        <button (click)="closeModal()" class="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-850 dark:hover:text-white border-none cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Left Columns (Form Inputs) -->
+          <div class="sm:col-span-2 space-y-4">
+            <!-- Name -->
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nombre del Producto</label>
+              <input 
+                type="text" 
+                formControlName="name" 
+                placeholder="Ej: Ventana Corrediza 2 Hojas"
+                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
+              >
+              <div *ngIf="templateForm.get('name')?.touched && templateForm.get('name')?.invalid" class="text-xs text-rose-500 mt-1">
+                El nombre es requerido.
+              </div>
+            </div>
+
+            <!-- Code & System/Line in nested grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Code -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Código</label>
+                <input 
+                  type="text" 
+                  formControlName="code" 
+                  placeholder="Ej: VC-02"
+                  class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                >
+                <div *ngIf="templateForm.get('code')?.touched && templateForm.get('code')?.invalid" class="text-xs text-rose-500 mt-1">
+                  El código es requerido.
+                </div>
+              </div>
+
+              <!-- System/Line -->
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Línea o Sistema</label>
+                <select 
+                  formControlName="systemId" 
+                  class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+                >
+                  <option value="">Ninguno (General)</option>
+                  <option *ngFor="let sys of systems()" [value]="sys.id">{{ sys.name }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (Image Upload Box) -->
+          <div class="sm:col-span-1 flex flex-col items-center">
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 self-start">Imagen Producto</label>
+            <div class="relative w-full aspect-square max-w-[130px] rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center overflow-hidden group transition-all hover:border-slate-350 dark:hover:border-slate-700 shadow-inner">
+              <!-- Progress Bar State -->
+              <ng-container *ngIf="uploadProgress() !== null">
+                <div class="w-full h-full flex flex-col items-center justify-center p-4 gap-3">
+                  <div class="relative w-10 h-10 flex items-center justify-center">
+                    <svg class="animate-spin w-8 h-8 text-indigo-650" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="absolute text-[8px] font-extrabold text-indigo-600 dark:text-indigo-400">
+                      {{ uploadProgress() }}%
+                    </span>
+                  </div>
+                  <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-indigo-600 h-1.5 rounded-full transition-all duration-75" [style.width.%]="uploadProgress()"></div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-container *ngIf="uploadProgress() === null">
+                <ng-container *ngIf="templateForm.get('image')?.value">
+                  <img [src]="templateForm.get('image')?.value" alt="Preview" class="w-full h-full object-contain p-2 animate-fade-in" />
+                  <button 
+                    type="button" (click)="removeImage()"
+                    class="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer border-none shadow-md"
+                    title="Eliminar Imagen"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="!templateForm.get('image')?.value">
+                  <label 
+                    for="template-image-upload"
+                    class="w-full h-full flex flex-col items-center justify-center gap-1.5 cursor-pointer text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 text-center font-semibold"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-slate-400 dark:text-slate-600">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                    <span class="text-[9px] uppercase tracking-wider">Subir Imagen</span>
+                  </label>
+                  <input 
+                    id="template-image-upload" type="file" accept="image/png, image/jpeg, image/jpg, image/webp"
+                    (change)="onImageChange($event)" class="hidden"
+                  />
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Descripción</label>
+          <textarea 
+            formControlName="description" 
+            rows="3"
+            placeholder="Descripción detallada de la plantilla de producción..."
+            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Active Checkbox -->
+        <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+          <input 
+            type="checkbox" 
+            formControlName="isActive" 
+            id="isActive"
+            class="w-5 h-5 rounded-md border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 accent-indigo-600 text-indigo-600 cursor-pointer focus:ring-0"
+          >
+          <label for="isActive" class="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">Plantilla Activa</label>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex gap-3 justify-end border-t border-slate-200 dark:border-slate-800/80 pt-4 mt-6">
+          <button 
+            type="button" 
+            (click)="closeModal()" 
+            class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs border-none transition-all cursor-pointer"
+          >
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

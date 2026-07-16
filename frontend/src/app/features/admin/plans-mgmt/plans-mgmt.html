@@ -1,0 +1,281 @@
+<div class="space-y-6 max-w-4xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-white tracking-tight">Gestión de Planes de Pago</h1>
+      <p class="text-sm text-slate-400 mt-1">Configura y administra los niveles de suscripción de Siscop Next.</p>
+    </div>
+    <button 
+      (click)="openCreate()"
+      class="px-5 py-3 rounded-xl bg-gradient-to-r from-[#0050a1] to-[#1474c9] hover:from-[#0459b3] hover:to-[#2284e2] text-white font-semibold text-sm shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" />
+      </svg>
+      <span>Nuevo Plan</span>
+    </button>
+  </div>
+
+  <!-- Notifications -->
+  @if (successMessage()) {
+    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Plans Table -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            <th class="py-4 px-4">Plan / Código</th>
+            <th class="py-4 px-4">Precio</th>
+            <th class="py-4 px-4">Límites</th>
+            <th class="py-4 px-4">Estado</th>
+            <th class="py-4 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-850/60 text-sm">
+          @for (plan of plans(); track plan.id) {
+            <tr class="hover:bg-slate-900/20 transition-colors">
+              <!-- Name & Code -->
+              <td class="py-4 px-4 text-white font-semibold">
+                <div class="flex items-center gap-2">
+                  <span>{{ plan.name }}</span>
+                  <span class="text-[9px] px-1.5 py-0.5 font-mono font-bold uppercase tracking-wider rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">{{ plan.code }}</span>
+                </div>
+                <div class="text-xs text-slate-450 font-normal mt-1 max-w-xs sm:max-w-md truncate">{{ plan.description }}</div>
+              </td>
+              <!-- Price -->
+              <td class="py-4 px-4 text-white font-semibold">
+                ${{ plan.price }}
+                <span class="text-xs text-slate-500 font-normal"> / {{ plan.billing_cycle === 'monthly' ? 'mes' : 'año' }}</span>
+              </td>
+              <!-- Limits -->
+              <td class="py-4 px-4 text-slate-300">
+                <div class="flex flex-col gap-0.5 text-xs">
+                  <span class="font-medium text-slate-200">{{ plan.max_users }} usuarios</span>
+                  <span class="text-slate-500">{{ plan.max_storage_mb / 1024 }} GB almacenamiento</span>
+                </div>
+              </td>
+              <!-- Status -->
+              <td class="py-4 px-4">
+                <span 
+                  [class]="plan.is_active 
+                    ? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                    : 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" [class]="plan.is_active ? 'bg-emerald-400' : 'bg-red-400'"></span>
+                  {{ plan.is_active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <!-- Actions -->
+              <td class="py-4 px-4 text-right space-x-1.5">
+                <button 
+                  (click)="openEdit(plan)"
+                  class="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/5 rounded-xl transition-all cursor-pointer"
+                  title="Editar Plan"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.062a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleActive(plan)"
+                  [class]="plan.is_active ? 'text-red-400 hover:bg-red-500/5' : 'text-emerald-400 hover:bg-emerald-500/5'"
+                  class="p-2 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center"
+                  [title]="plan.is_active ? 'Desactivar' : 'Activar'"
+                >
+                  @if (plan.is_active) {
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                    </svg>
+                  }
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="py-12 text-center text-slate-500">
+                No hay planes registrados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Plan Form Modal -->
+  @if (showModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+      <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <h2 class="text-xl font-bold text-white">
+            {{ selectedPlan() ? 'Editar Plan de Pago' : 'Nuevo Plan de Pago' }}
+          </h2>
+          <button 
+            (click)="closeModal()"
+            class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+          <form [formGroup]="planForm" (ngSubmit)="savePlan()" class="space-y-4" id="planForm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Code -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Código del Plan</label>
+                <input 
+                  type="text" 
+                  formControlName="code"
+                  placeholder="ej: standard"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all disabled:opacity-50"
+                />
+                @if (planForm.get('code')?.touched && planForm.get('code')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">El código es requerido</span>
+                }
+              </div>
+
+              <!-- Name -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Nombre del Plan</label>
+                <input 
+                  type="text" 
+                  formControlName="name"
+                  placeholder="ej: Plan Estándar"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all"
+                />
+                @if (planForm.get('name')?.touched && planForm.get('name')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">El nombre es requerido</span>
+                }
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Descripción</label>
+              <textarea 
+                formControlName="description"
+                rows="2"
+                placeholder="Breve descripción de los beneficios del plan..."
+                class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all resize-none"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Price -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Precio Mensual (USD)</label>
+                <input 
+                  type="number" 
+                  formControlName="price"
+                  step="0.01"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all"
+                />
+                @if (planForm.get('price')?.touched && planForm.get('price')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">El precio es inválido</span>
+                }
+              </div>
+
+              <!-- Billing Cycle -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Ciclo de Facturación</label>
+                <select 
+                  formControlName="billing_cycle"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all cursor-pointer"
+                >
+                  <option value="monthly">Mensual</option>
+                  <option value="yearly">Anual</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Max Users -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Límite de Usuarios</label>
+                <input 
+                  type="number" 
+                  formControlName="max_users"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all"
+                />
+                @if (planForm.get('max_users')?.touched && planForm.get('max_users')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">Debe ser al menos 1</span>
+                }
+              </div>
+
+              <!-- Max Storage -->
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Almacenamiento (MB)</label>
+                <input 
+                  type="number" 
+                  formControlName="max_storage_mb"
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-indigo-500 focus:outline-none text-sm transition-all"
+                />
+                @if (planForm.get('max_storage_mb')?.touched && planForm.get('max_storage_mb')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">El almacenamiento es requerido</span>
+                }
+              </div>
+            </div>
+
+            <!-- Active Status (Only for edit) -->
+            @if (selectedPlan()) {
+              <div class="flex items-center gap-3 bg-slate-950/40 p-3 border border-slate-800/80 rounded-xl">
+                <input 
+                  type="checkbox" 
+                  formControlName="is_active" 
+                  id="isActiveCheck"
+                  class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 bg-slate-950 border-slate-800 cursor-pointer"
+                />
+                <label for="isActiveCheck" class="text-sm font-semibold text-slate-350 cursor-pointer">Plan Activo (Elegible para suscripciones)</label>
+              </div>
+            }
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-top border-slate-800 mt-2">
+          <button 
+            type="button" 
+            (click)="closeModal()"
+            class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            form="planForm"
+            [disabled]="isLoading()"
+            class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            {{ isLoading() ? 'Guardando...' : 'Guardar Plan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
