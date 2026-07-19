@@ -540,8 +540,14 @@
                 <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{{ product.width }} × {{
                   product.height }} mm</td>
                 <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400 font-medium">
-                  {{ product.area | number:'1.2-2' }} {{ product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²'
-                  }}
+                  <div class="flex flex-col items-center justify-center">
+                    <span>{{ product.area | number:'1.2-2' }} {{ product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²' }}</span>
+                    <span *ngIf="product.engineering_snapshot?.minAreaApplied"
+                      class="mt-1 inline-block px-1.5 py-0.5 bg-amber-50 dark:bg-amber-550/10 text-amber-600 dark:text-amber-450 text-[8px] font-extrabold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/20 shadow-sm"
+                      [title]="'Físico real: ' + (product.engineering_snapshot?.originalArea | number:'1.2-2') + ' ' + (product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²')">
+                      Mínimo
+                    </span>
+                  </div>
                 </td>
                 <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-400">
                   <div class="flex flex-col items-end">
@@ -740,8 +746,8 @@
                         <td class="py-1 px-4 text-center text-slate-600 whitespace-nowrap">{{ prod.width }} × {{
                           prod.height }} <span class="text-[10px]">mm</span></td>
                         <td class="py-1 px-4 text-center text-slate-600 whitespace-nowrap">
-                          {{ prod.area | number:'1.2-2' }} {{ prod.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' :
-                          'm²' }}
+                          {{ prod.area | number:'1.2-2' }} {{ prod.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²' }}
+                          <span *ngIf="prod.engineering_snapshot?.minAreaApplied" class="text-[9px] font-bold text-amber-600 ml-0.5" title="Área Mínima Aplicada">*</span>
                         </td>
                         <td class="py-1 px-4 text-right text-slate-600">
                           <div>{{ prod.unit_price | number:'1.2-2' }}</div>

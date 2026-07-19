@@ -59,6 +59,8 @@ export class EngineeringController {
     @Body() dto: CreateTemplateDto,
     @CurrentTenant() tenantId: string,
   ) {
+    const fs = require('fs');
+    fs.appendFileSync('test-log.txt', `\n--- CREATE TEMPLATE ---\nDTO received: ${JSON.stringify(dto)}\n`);
     return this.engineeringService.createTemplate(dto, tenantId);
   }
 
@@ -70,6 +72,8 @@ export class EngineeringController {
     @Body() dto: UpdateTemplateDto,
     @CurrentTenant() tenantId: string,
   ) {
+    const fs = require('fs');
+    fs.appendFileSync('test-log.txt', `\n--- UPDATE TEMPLATE ---\nDTO received: ${JSON.stringify(dto)}\n`);
     return this.engineeringService.updateTemplate(id, dto, tenantId);
   }
 

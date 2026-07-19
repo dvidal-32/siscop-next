@@ -1,5 +1,17 @@
-import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber, IsArray, ValidateNested, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class TemplateMinimumAreaDto {
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  bodies: number;
+
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  minArea: number;
+}
 
 export class UpdateTemplateDto {
   @IsString({ message: 'El nombre de la plantilla debe ser una cadena de texto' })
@@ -53,4 +65,11 @@ export class UpdateTemplateDto {
   @Type(() => Number)
   @IsNumber()
   areaPriceL4?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TemplateMinimumAreaDto)
+  minimumAreas?: TemplateMinimumAreaDto[];
 }
+

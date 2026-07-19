@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { EngineeringService } from '../../../core/services/engineering.service';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-templates',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './templates.html',
 })
 export class TemplatesComponent implements OnInit {
@@ -30,9 +30,25 @@ export class TemplatesComponent implements OnInit {
   selectedTemplate = signal<any | null>(null);
   uploadProgress = signal<number | null>(null);
 
+  // Áreas mínimas
+  minimumAreasList: { bodies: number; minArea: number }[] = [];
+
+  addMinimumArea() {
+    // Determinar la cantidad sugerida de cuerpos (siguiente número disponible)
+    const nextBodies = this.minimumAreasList.length > 0 
+      ? Math.max(...this.minimumAreasList.map(a => a.bodies)) + 1 
+      : 1;
+    this.minimumAreasList.push({ bodies: nextBodies, minArea: 0 });
+    this.minimumAreasList.sort((a, b) => a.bodies - b.bodies);
+  }
+
+  removeMinimumArea(index: number) {
+    this.minimumAreasList.splice(index, 1);
+  }
+
   templateForm = this.fb.group({
     name: ['', [Validators.required]],
-    code: ['', [Validators.required]],
+    code: ['', [Validators.required, Validators.pattern(/^[A-Z0-9\-]+$/)]],
     description: [''],
     systemId: [''],
     isActive: [true],
@@ -44,6 +60,15 @@ export class TemplatesComponent implements OnInit {
     areaPriceL3: [null],
     areaPriceL4: [null],
   });
+
+  onCodeInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+    if (input.value !== sanitized) {
+      input.value = sanitized;
+    }
+    this.templateForm.patchValue({ code: sanitized }, { emitEvent: false });
+  }
 
   async ngOnInit() {
     this.isLoading.set(true);
@@ -71,6 +96,7 @@ export class TemplatesComponent implements OnInit {
 
   openCreate() {
     this.selectedTemplate.set(null);
+    this.minimumAreasList = [];
     this.templateForm.reset({
       name: '',
       code: '',
@@ -91,6 +117,10 @@ export class TemplatesComponent implements OnInit {
 
   openEdit(template: any) {
     this.selectedTemplate.set(template);
+    this.minimumAreasList = template.minimum_areas ? template.minimum_areas.map((ma: any) => ({
+      bodies: ma.bodies,
+      minArea: Number(ma.min_area) || 0
+    })) : [];
     this.templateForm.patchValue({
       name: template.name,
       code: template.code,
@@ -112,6 +142,7 @@ export class TemplatesComponent implements OnInit {
   closeModal() {
     this.showModal.set(false);
     this.selectedTemplate.set(null);
+    this.minimumAreasList = [];
   }
 
   onImageChange(event: Event) {
@@ -167,7 +198,10 @@ export class TemplatesComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    const formData = this.templateForm.value;
+    const formData = {
+      ...this.templateForm.value,
+      minimumAreas: this.minimumAreasList,
+    };
 
     try {
       if (this.selectedTemplate()) {

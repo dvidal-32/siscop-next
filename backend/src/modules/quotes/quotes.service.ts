@@ -303,6 +303,18 @@ export class QuotesService {
   ) {
     const appliedMargin = margin ?? 1.0; // Sin margen por defecto
 
+    // Pre-cargar áreas mínimas para evitar N+1 query problem
+    const uniqueTemplateIds = [...new Set(products.map((p) => p.template_id))];
+    const minimumAreas = await this.prisma.templateMinimumArea.findMany({
+      where: { template_id: { in: uniqueTemplateIds } },
+    });
+    
+    // Mapa rápido para búsquedas en memoria: key = "templateId_bodies"
+    const minAreaMap = new Map<string, number>();
+    for (const ma of minimumAreas) {
+      minAreaMap.set(`${ma.template_id}_${ma.bodies}`, Number(ma.min_area));
+    }
+
     const calculated = await Promise.all(
       products.map(async (p) => {
         const inputVariables: Record<string, number> = {
@@ -325,7 +337,22 @@ export class QuotesService {
         let pricing_method = engineResult.pricingMethod || 'cost';
         let applied_price_list: number | null = null;
 
-        // Se sobreescribe si el Frontend envió un pricing_method explícito (pendiente si lo agregamos al DTO, asumo que usaremos el default)
+        // Determinar número de cuerpos para venta mínima
+        let bodies = 1;
+        for (const key of Object.keys(inputVariables)) {
+          if (key.toUpperCase() === 'CUERPOS' || key.toUpperCase() === 'NAVES') {
+            bodies = Number(inputVariables[key]) || 1;
+            break;
+          }
+        }
+
+        // Consultar área mínima configurada para este número de cuerpos desde el mapa en memoria
+        const minAreaKey = `${p.template_id}_${bodies}`;
+        const minArea = minAreaMap.has(minAreaKey) ? minAreaMap.get(minAreaKey)! : null;
+
+        let areaToBill = engineResult.totalAreaUnit || 0;
+        let minAreaApplied = false;
+
         if (pricing_method === 'area') {
            // Usamos la lista de precios
            applied_price_list = priceListLevel;
@@ -337,27 +364,43 @@ export class QuotesService {
              case 4: areaPrice = Number(engineResult.areaPriceL4) || Number(engineResult.areaPriceL1) || 0; break;
              default: areaPrice = Number(engineResult.areaPriceL1) || 0;
            }
-           const totalAreaUnit = engineResult.totalAreaUnit || 0;
-           unit_price = totalAreaUnit * areaPrice;
+
+           // Aplicar venta mínima si el área física real es menor
+           if (minArea !== null && minArea > areaToBill) {
+             areaToBill = minArea;
+             minAreaApplied = true;
+           }
+
+           unit_price = areaToBill * areaPrice;
         } else {
            unit_price = unit_cost * appliedMargin;
         }
 
         const total_price = unit_price * p.quantity;
 
+        // Enriquecer el snapshot con información de la venta mínima
+        const enrichedSnapshot = {
+          ...engineResult,
+          originalArea: engineResult.totalAreaUnit || 0,
+          billedArea: areaToBill,
+          minAreaApplied,
+          minAreaConfigured: minArea,
+          bodies,
+        };
+
         return {
           template_id: p.template_id,
           name: p.name,
           width: p.width,
           height: p.height,
-          area: engineResult.totalAreaUnit || 0,
+          area: areaToBill,
           quantity: p.quantity,
           unit_cost,
           unit_price,
           total_price,
           pricing_method,
           applied_price_list,
-          engineering_snapshot: engineResult as any, // Snapshot completo para congelar
+          engineering_snapshot: enrichedSnapshot as any, // Snapshot completo enriquecido para congelar
           notes: p.notes,
         };
       }),

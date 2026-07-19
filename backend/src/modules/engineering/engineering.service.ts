@@ -32,6 +32,7 @@ export class EngineeringService {
       where: { tenant_id: tenantId },
       include: {
         system: true,
+        minimum_areas: true,
         source_template: { select: { id: true, name: true, code: true } },
         _count: { select: { variables: true, components: true } },
       },
@@ -54,6 +55,7 @@ export class EngineeringService {
             rules: { orderBy: { priority: 'asc' } },
           },
         },
+        minimum_areas: { orderBy: { bodies: 'asc' } },
       },
     });
     if (!template) {
@@ -96,8 +98,14 @@ export class EngineeringService {
         area_price_l2: dto.areaPriceL2 || null,
         area_price_l3: dto.areaPriceL3 || null,
         area_price_l4: dto.areaPriceL4 || null,
+        minimum_areas: dto.minimumAreas ? {
+          create: dto.minimumAreas.map(ma => ({
+            bodies: ma.bodies,
+            min_area: ma.minArea,
+          }))
+        } : undefined,
       },
-      include: { system: true },
+      include: { system: true, minimum_areas: true },
     });
   }
 
@@ -145,10 +153,23 @@ export class EngineeringService {
 
     Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
+    if (dto.minimumAreas) {
+      // Borrar áreas mínimas antiguas y crear las nuevas
+      await this.prisma.templateMinimumArea.deleteMany({
+        where: { template_id: id },
+      });
+      data.minimum_areas = {
+        create: dto.minimumAreas.map(ma => ({
+          bodies: ma.bodies,
+          min_area: ma.minArea,
+        }))
+      };
+    }
+
     return this.prisma.engineeringTemplate.update({
       where: { id },
       data,
-      include: { system: true },
+      include: { system: true, minimum_areas: true },
     });
   }
 

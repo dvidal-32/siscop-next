@@ -462,12 +462,30 @@ model EngineeringTemplate {
   variables           EngineeringVariable[]
   components          EngineeringComponent[]
   quoted_products     QuotedProduct[]
+  minimum_areas       TemplateMinimumArea[]
 
   @@unique([tenant_id, code])
   @@index([tenant_id])
   @@index([source_template_id])
   @@map("engineering_templates")
 }
+
+// ──────────────────────────────────────────────
+// ÁREAS MÍNIMAS DE VENTA POR CUERPOS
+// ──────────────────────────────────────────────
+model TemplateMinimumArea {
+  id          String              @id @default(uuid())
+  template_id String
+  template    EngineeringTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  bodies      Int                 // Cantidad de cuerpos (ej: 1, 2, 3...)
+  min_area    Decimal             @db.Decimal(10, 2) // Área mínima facturable en la unidad de la plantilla
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @updatedAt
+
+  @@unique([template_id, bodies])
+  @@map("template_minimum_areas")
+}
+
 
 // ──────────────────────────────────────────────
 // VARIABLES DE ENTRADA DE INGENIERÍA

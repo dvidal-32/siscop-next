@@ -76,6 +76,27 @@ export class AuthService {
       { code: 'audit.view', name: 'Ver Auditoría', module: 'audit', action: 'view' },
       { code: 'billing.view', name: 'Ver Facturación', module: 'billing', action: 'view' },
       { code: 'billing.pay', name: 'Pagar Facturas', module: 'billing', action: 'pay' },
+      // Commercial
+      { code: 'clients.view',   name: 'Ver Clientes',    module: 'clients', action: 'view' },
+      { code: 'clients.create', name: 'Crear Clientes',  module: 'clients', action: 'create' },
+      { code: 'clients.update', name: 'Editar Clientes', module: 'clients', action: 'update' },
+      { code: 'clients.delete', name: 'Eliminar Clientes', module: 'clients', action: 'delete' },
+      { code: 'projects.view',   name: 'Ver Proyectos',    module: 'projects', action: 'view' },
+      { code: 'projects.create', name: 'Crear Proyectos',  module: 'projects', action: 'create' },
+      { code: 'projects.update', name: 'Editar Proyectos', module: 'projects', action: 'update' },
+      { code: 'projects.delete', name: 'Eliminar Proyectos', module: 'projects', action: 'delete' },
+      { code: 'quotes.view',    name: 'Ver Cotizaciones',      module: 'quotes', action: 'view' },
+      { code: 'quotes.create',  name: 'Crear Cotizaciones',    module: 'quotes', action: 'create' },
+      { code: 'quotes.update',  name: 'Editar Cotizaciones',   module: 'quotes', action: 'update' },
+      { code: 'quotes.delete',  name: 'Eliminar Cotizaciones', module: 'quotes', action: 'delete' },
+      { code: 'quotes.approve', name: 'Aprobar Cotizaciones',  module: 'quotes', action: 'approve' },
+      // Engineering
+      { code: 'engineering.view', name: 'Ver Ingeniería', module: 'engineering', action: 'view' },
+      { code: 'engineering.create', name: 'Crear Plantillas de Ingeniería', module: 'engineering', action: 'create' },
+      { code: 'engineering.update', name: 'Editar Plantillas de Ingeniería', module: 'engineering', action: 'update' },
+      { code: 'engineering.delete', name: 'Eliminar Plantillas de Ingeniería', module: 'engineering', action: 'delete' },
+      { code: 'engineering.simulate', name: 'Ejecutar Simulador de Ingeniería', module: 'engineering', action: 'simulate' },
+      { code: 'engineering.import', name: 'Importar Plantillas Globales', module: 'engineering', action: 'import' },
     ];
 
     for (const perm of defaultPermissions) {
