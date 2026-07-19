@@ -25,6 +25,22 @@ export class RegisterTenantDto {
   @IsOptional()
   phone?: string;
 
+  @IsString({ message: 'El país debe ser una cadena de texto' })
+  @IsOptional()
+  country?: string;
+
+  @IsString()
+  @IsOptional()
+  currencyCode?: string;
+
+  @IsString()
+  @IsOptional()
+  currencySymbol?: string;
+
+  @IsString()
+  @IsOptional()
+  currencyLocale?: string;
+
   // Datos del Usuario Administrador
   @IsEmail({}, { message: 'El correo del administrador no es válido' })
   @IsNotEmpty({ message: 'El correo del administrador es requerido' })

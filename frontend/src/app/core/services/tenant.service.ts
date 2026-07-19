@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -9,6 +9,8 @@ export class TenantService {
   private http = inject(HttpClient);
   private readonly tenantsUrl = 'http://localhost:3000/tenants';
   private readonly settingsUrl = 'http://localhost:3000/settings';
+
+  tenantSettings = signal<any[]>([]);
 
   async get(id: string): Promise<any> {
     return firstValueFrom(this.http.get<any>(`${this.tenantsUrl}/${id}`));
@@ -26,8 +28,20 @@ export class TenantService {
     return firstValueFrom(this.http.get<any[]>(this.settingsUrl));
   }
 
+  async loadSettings(): Promise<void> {
+    try {
+      const settings = await this.getSettings();
+      this.tenantSettings.set(settings);
+    } catch (err) {
+      console.error('Failed to load tenant settings', err);
+    }
+  }
+
   async updateSettings(settings: any[]): Promise<any> {
-    return firstValueFrom(this.http.patch<any>(this.settingsUrl, { settings }));
+    const res = await firstValueFrom(this.http.patch<any>(this.settingsUrl, { settings }));
+    // Update local cache
+    await this.loadSettings();
+    return res;
   }
 
   // Métodos para impuestos (Taxes)

@@ -101,6 +101,26 @@
                   <span class="text-xs text-red-400 mt-1 block">El teléfono es requerido</span>
                 }
               </div>
+
+              <!-- Country -->
+              <div>
+                <label for="country" class="block text-xs font-semibold uppercase text-slate-400 mb-2">País</label>
+                <select 
+                  id="country" 
+                  formControlName="country"
+                  class="w-full px-4 py-3 bg-slate-950/50 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                  [class.border-red-500]="registerForm.get('country')?.touched && registerForm.get('country')?.invalid"
+                >
+                  <option value="">Seleccione su país</option>
+                  @for (c of countriesList; track c.code) {
+                    <option [value]="c.name">{{ c.name }}</option>
+                  }
+                </select>
+                @if (registerForm.get('country')?.touched && registerForm.get('country')?.invalid) {
+                  <span class="text-xs text-red-400 mt-1 block">El país es requerido</span>
+                }
+                <p class="text-[10px] text-slate-500 mt-1.5">Al elegir tu país se configurará automáticamente tu moneda local (Símbolo y Formato).</p>
+              </div>
             </div>
 
             <!-- Section: Admin Data -->

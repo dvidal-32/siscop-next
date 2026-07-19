@@ -174,12 +174,12 @@
     }
   </div>
 } @else {
-<div class="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100 font-sans relative">
+<div class="flex h-screen print:block print:h-auto bg-slate-50 dark:bg-slate-950 overflow-hidden print:overflow-visible text-slate-900 dark:text-slate-100 font-sans relative">
 
   <!-- ════════ MODO STATIC ════════ -->
   @if (menuMode() === 'static') {
     <app-sidebar
-      class="h-full shrink-0 overflow-hidden transition-all duration-300 ease-in-out"
+      class="h-full shrink-0 overflow-hidden transition-all duration-300 ease-in-out print:hidden"
       [class.w-64]="sidebarActive()"
       [class.w-0]="!sidebarActive()"
     ></app-sidebar>
@@ -196,15 +196,15 @@
     }
     <!-- Sidebar flotante -->
     <app-sidebar
-      class="fixed top-0 left-0 h-full z-50 shadow-2xl transition-transform duration-300 ease-in-out"
+      class="fixed top-0 left-0 h-full z-50 shadow-2xl transition-transform duration-300 ease-in-out print:hidden"
       [style.transform]="sidebarActive() ? 'translateX(0)' : 'translateX(-100%)'"
     ></app-sidebar>
   }
 
   <!-- Área principal -->
-  <div class="flex flex-col flex-1 min-w-0">
-    <app-topbar (toggleMenu)="toggleSidebar()"></app-topbar>
-    <main class="flex-1 overflow-y-auto p-8 bg-slate-100 dark:bg-slate-950/20">
+  <div class="flex flex-col print:block flex-1 min-w-0">
+    <app-topbar (toggleMenu)="toggleSidebar()" class="print:hidden"></app-topbar>
+    <main class="flex-1 overflow-y-auto print:overflow-visible p-8 print:p-0 bg-slate-100 dark:bg-slate-950/20 print:bg-transparent">
       <router-outlet></router-outlet>
     </main>
   </div>

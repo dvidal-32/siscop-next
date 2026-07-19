@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsArray, ArrayUnique } from 'class-validator';
+import { IsOptional, IsString, IsArray, ArrayUnique, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
   @IsString({ message: 'El nombre debe ser una cadena de texto' })
@@ -14,4 +14,9 @@ export class UpdateUserDto {
   @IsString({ each: true, message: 'Cada rol debe ser el ID en formato de cadena' })
   @IsOptional()
   roleIds?: string[];
+
+  @IsString({ message: 'La contraseña debe ser una cadena de texto' })
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @IsOptional()
+  password?: string;
 }

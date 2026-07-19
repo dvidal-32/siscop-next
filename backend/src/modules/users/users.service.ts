@@ -3,6 +3,7 @@ import { PrismaService } from '../../shared/database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
 
 @Injectable()
 export class UsersService {
@@ -176,20 +177,31 @@ export class UsersService {
           where: { user_id: id },
         });
       }
+      const updateData: any = {
+        first_name: dto.firstName,
+        last_name: dto.lastName,
+      };
+
+      fs.appendFileSync('test-log.txt', `\n--- UPDATE START ---\nDTO received: ${JSON.stringify(dto)}\n`);
+
+      if (dto.password) {
+        updateData.password_hash = await bcrypt.hash(dto.password, 10);
+        fs.appendFileSync('test-log.txt', `Password was provided. Hashed: ${updateData.password_hash}\n`);
+      } else {
+        fs.appendFileSync('test-log.txt', `No password provided in DTO.\n`);
+      }
+
+      if (dto.roleIds) {
+        updateData.roles = {
+          create: dto.roleIds.map((rid) => ({
+            role_id: rid,
+          })),
+        };
+      }
 
       return tx.user.update({
         where: { id },
-        data: {
-          first_name: dto.firstName,
-          last_name: dto.lastName,
-          roles: dto.roleIds
-            ? {
-                create: dto.roleIds.map((rid) => ({
-                  role_id: rid,
-                })),
-              }
-            : undefined,
-        },
+        data: updateData,
         select: {
           id: true,
           email: true,

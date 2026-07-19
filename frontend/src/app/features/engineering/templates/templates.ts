@@ -37,6 +37,12 @@ export class TemplatesComponent implements OnInit {
     systemId: [''],
     isActive: [true],
     image: [''],
+    pricingMethod: ['cost', [Validators.required]],
+    areaUnit: ['m2'],
+    areaPriceL1: [null],
+    areaPriceL2: [null],
+    areaPriceL3: [null],
+    areaPriceL4: [null],
   });
 
   async ngOnInit() {
@@ -72,6 +78,12 @@ export class TemplatesComponent implements OnInit {
       systemId: '',
       isActive: true,
       image: '',
+      pricingMethod: 'cost',
+      areaUnit: 'm2',
+      areaPriceL1: null,
+      areaPriceL2: null,
+      areaPriceL3: null,
+      areaPriceL4: null,
     });
     this.errorMessage.set(null);
     this.showModal.set(true);
@@ -86,6 +98,12 @@ export class TemplatesComponent implements OnInit {
       systemId: template.system_id || '',
       isActive: template.is_active,
       image: template.image || '',
+      pricingMethod: template.pricing_method || 'cost',
+      areaUnit: template.area_unit || 'm2',
+      areaPriceL1: template.area_price_l1,
+      areaPriceL2: template.area_price_l2,
+      areaPriceL3: template.area_price_l3,
+      areaPriceL4: template.area_price_l4,
     });
     this.errorMessage.set(null);
     this.showModal.set(true);

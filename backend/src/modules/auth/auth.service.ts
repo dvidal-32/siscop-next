@@ -7,6 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -70,8 +71,8 @@ export class AuthService {
       { code: 'roles.create', name: 'Crear Roles', module: 'roles', action: 'create' },
       { code: 'roles.update', name: 'Editar Roles', module: 'roles', action: 'update' },
       { code: 'roles.delete', name: 'Eliminar Roles', module: 'roles', action: 'delete' },
-      { code: 'settings.view', name: 'Ver Configuración', module: 'settings', action: 'view' },
-      { code: 'settings.update', name: 'Editar Configuración', module: 'settings', action: 'update' },
+      { code: 'settings.view', name: 'Ver Mi Empresa', module: 'settings', action: 'view' },
+      { code: 'settings.update', name: 'Editar Mi Empresa', module: 'settings', action: 'update' },
       { code: 'audit.view', name: 'Ver Auditoría', module: 'audit', action: 'view' },
       { code: 'billing.view', name: 'Ver Facturación', module: 'billing', action: 'view' },
       { code: 'billing.pay', name: 'Pagar Facturas', module: 'billing', action: 'pay' },
@@ -90,7 +91,7 @@ export class AuthService {
 
     // 6. Transacción para crear Tenant, Rol Admin, Usuario Admin, y Suscripción
     const result = await this.prisma.$transaction(async (tx) => {
-      // Crear Tenant
+      // 2. Crear Tenant (empresa)
       const tenant = await tx.tenant.create({
         data: {
           name: dto.tenantName,
@@ -98,11 +99,23 @@ export class AuthService {
           legal_name: dto.legalName,
           tax_id: dto.taxId,
           phone: dto.phone,
+          country: dto.country,
           email: dto.adminEmail, // Se guarda el email de registro como contacto
           status: 'pending',
           plan_id: plan.id,
         },
       });
+
+      // Crear configuraciones iniciales de moneda si existen
+      if (dto.currencyCode && dto.currencySymbol && dto.currencyLocale) {
+        await tx.tenantSetting.createMany({
+          data: [
+            { tenant_id: tenant.id, key: 'MONEDA_CODIGO', value: dto.currencyCode, value_type: 'string' },
+            { tenant_id: tenant.id, key: 'MONEDA_SIMBOLO', value: dto.currencySymbol, value_type: 'string' },
+            { tenant_id: tenant.id, key: 'MONEDA_LOCALE', value: dto.currencyLocale, value_type: 'string' },
+          ]
+        });
+      }
 
       // Crear Usuario Administrador
       const user = await tx.user.create({
@@ -196,6 +209,8 @@ export class AuthService {
 
     // 2. Validar contraseña
     const passwordMatch = await bcrypt.compare(dto.password, user.password_hash);
+    fs.appendFileSync('test-log.txt', `\n--- LOGIN ATTEMPT ---\nEmail: ${dto.email}\nProvided password: ${dto.password}\nHash in DB: ${user.password_hash}\nMatch: ${passwordMatch}\n`);
+    
     if (!passwordMatch) {
       throw new UnauthorizedException('Credenciales inválidas');
     }

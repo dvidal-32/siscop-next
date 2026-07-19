@@ -5,9 +5,17 @@ import { PrismaService } from '../../shared/database/prisma.service';
 export class PermissionsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(isSuperAdmin: boolean) {
+    const filterOptions: any = { is_active: true };
+
+    if (!isSuperAdmin) {
+      filterOptions.module = {
+        notIn: ['plans', 'platform-settings', 'tenants', 'library'],
+      };
+    }
+
     return this.prisma.permission.findMany({
-      where: { is_active: true },
+      where: filterOptions,
       orderBy: { module: 'asc' },
     });
   }

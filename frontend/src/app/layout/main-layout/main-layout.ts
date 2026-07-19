@@ -60,6 +60,9 @@ export class MainLayoutComponent {
   });
 
   constructor() {
+    // Load settings for the entire app state
+    this.tenantService.loadSettings();
+
     effect(() => {
       if (this.isSubscriptionExpired()) {
         this.loadPlans();

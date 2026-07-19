@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,6 +13,7 @@ import { CommonModule } from '@angular/common';
 export class CatalogItemsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private catalogService = inject(CatalogService);
+  authService = inject(AuthService);
 
   activeTab = signal<'profile' | 'glass' | 'accessory' | 'supply'>('profile');
   isLoading = signal<boolean>(false);

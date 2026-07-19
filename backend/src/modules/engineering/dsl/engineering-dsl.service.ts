@@ -106,13 +106,57 @@ export class EngineeringDslService {
     let result = expression;
     let maxIterations = 50; // Protección contra loops infinitos
 
-    // Manejo especial de IF(condición, valorSiVerdad, valorSiFalso)
-    const ifRegex = /IF\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/gi;
-    while (ifRegex.test(result) && maxIterations-- > 0) {
-      result = result.replace(ifRegex, (_, condition, trueVal, falseVal) => {
-        const condResult = this.evaluateCondition(condition.trim(), variables);
-        return condResult ? trueVal.trim() : falseVal.trim();
-      });
+    // Evaluar IF de adentro hacia afuera buscando el último "IF(" para procesar el más anidado primero
+    while (result.toUpperCase().includes('IF(') && maxIterations-- > 0) {
+      const upperStr = result.toUpperCase();
+      const lastIfIdx = upperStr.lastIndexOf('IF(');
+      
+      let brackets = 0;
+      let closeIdx = -1;
+      for (let i = lastIfIdx + 2; i < result.length; i++) {
+        if (result[i] === '(') brackets++;
+        else if (result[i] === ')') {
+          brackets--;
+          if (brackets === 0) {
+            closeIdx = i;
+            break;
+          }
+        }
+      }
+
+      if (closeIdx !== -1) {
+        const inner = result.substring(lastIfIdx + 3, closeIdx);
+        const parts: string[] = [];
+        let currentPart = '';
+        let innerBrackets = 0;
+
+        for (let i = 0; i < inner.length; i++) {
+          if (inner[i] === '(') innerBrackets++;
+          else if (inner[i] === ')') innerBrackets--;
+          else if (inner[i] === ',' && innerBrackets === 0) {
+            parts.push(currentPart);
+            currentPart = '';
+            continue;
+          }
+          currentPart += inner[i];
+        }
+        parts.push(currentPart);
+
+        if (parts.length >= 3) {
+          const condition = parts[0];
+          const trueVal = parts[1];
+          const falseVal = parts.slice(2).join(',');
+          
+          const condResult = this.evaluateCondition(condition.trim(), variables);
+          const replacement = condResult ? trueVal.trim() : falseVal.trim();
+          
+          result = result.substring(0, lastIfIdx) + replacement + result.substring(closeIdx + 1);
+        } else {
+          break; // Salir si la sintaxis IF es inválida
+        }
+      } else {
+        break; // Salir si no hay paréntesis de cierre
+      }
     }
 
     // Reemplazar funciones matemáticas seguras
@@ -187,11 +231,11 @@ export class EngineeringDslService {
     // 1. Validar seguridad
     this.validateExpression(formula);
 
-    // 2. Sustituir funciones (IF, ROUND, etc.)
-    let expression = this.substituteFunctions(formula, variables);
+    // 2. Sustituir variables por valores
+    let expression = this.substituteVariables(formula, variables);
 
-    // 3. Sustituir variables por valores
-    expression = this.substituteVariables(expression, variables);
+    // 3. Sustituir funciones (IF, ROUND, etc.)
+    expression = this.substituteFunctions(expression, variables);
 
     // 4. Evaluar la expresión matemática pura
     return this.safeEvaluateMathExpression(expression);
@@ -227,6 +271,9 @@ export class EngineeringDslService {
 
     // Sustituir variables
     expression = this.substituteVariables(expression, variables);
+
+    // Sustituir funciones (ROUND, MAX, etc.)
+    expression = this.substituteFunctions(expression, variables);
 
     // Verificar que solo contiene caracteres de condición válidos
     const sanitized = expression.trim();

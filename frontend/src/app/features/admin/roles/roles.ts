@@ -1,6 +1,7 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RoleService } from '../../../core/services/role.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,9 +13,18 @@ import { CommonModule } from '@angular/common';
 export class RolesComponent implements OnInit {
   private fb = inject(FormBuilder);
   private roleService = inject(RoleService);
+  authService = inject(AuthService);
 
   roles = signal<any[]>([]);
   permissions = signal<any[]>([]);
+  modules = signal<string[]>([]);
+  activeModule = signal<string>('');
+  
+  filteredPermissions = computed(() => {
+    const mod = this.activeModule();
+    return this.permissions().filter(p => p.module === mod);
+  });
+
   showModal = signal<boolean>(false);
   selectedRole = signal<any | null>(null);
   selectedPermissionIds = signal<string[]>([]);
@@ -45,9 +55,19 @@ export class RolesComponent implements OnInit {
     try {
       const data = await this.roleService.getPermissions();
       this.permissions.set(data);
+      
+      const uniqueModules = [...new Set(data.map((p: any) => p.module))];
+      this.modules.set(uniqueModules as string[]);
+      if (uniqueModules.length > 0) {
+        this.activeModule.set(uniqueModules[0] as string);
+      }
     } catch (err) {
       console.error('Error cargando permisos', err);
     }
+  }
+
+  setActiveModule(mod: string) {
+    this.activeModule.set(mod);
   }
 
   openCreate() {
@@ -113,15 +133,33 @@ export class RolesComponent implements OnInit {
     }
   }
 
-  async deleteRole(id: string) {
+  deleteRole(id: string) {
     if (!confirm('¿Está seguro de que desea eliminar este rol?')) return;
 
     try {
-      await this.roleService.delete(id);
-      await this.loadRoles();
+      this.roleService.delete(id).then(() => {
+        this.loadRoles();
+      });
     } catch (err: any) {
       alert(err.error?.message || 'No se pudo eliminar el rol.');
     }
+  }
+
+  getModuleLabel(moduleCode: string): string {
+    const labels: Record<string, string> = {
+      users: 'Usuarios',
+      roles: 'Roles y Permisos',
+      tenants: 'Compañías',
+      engineering: 'Ingeniería',
+      quotes: 'Cotizaciones',
+      projects: 'Proyectos',
+      clients: 'Clientes',
+      catalog: 'Catálogo',
+      billing: 'Facturación',
+      settings: 'Mi Empresa',
+      audit: 'Auditoría'
+    };
+    return labels[moduleCode?.toLowerCase()] || moduleCode;
   }
 
   closeModal() {

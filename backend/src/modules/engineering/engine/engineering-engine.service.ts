@@ -202,24 +202,59 @@ export class EngineeringEngineService {
       let materialCost = 0;
       if (included && component.catalog_item) {
         const unitCost = Number(component.catalog_item.cost);
-        const unit = component.catalog_item.unit;
+        const rawUnit = component.catalog_item.unit.toLowerCase().trim();
 
-        // Calcular según la unidad del artículo
-        if (unit === 'm' && formulaResult.length !== undefined) {
-          // Perfiles: costo por metro × largo en metros × cantidad
-          materialCost = unitCost * (formulaResult.length / 1000) * formulaResult.quantity;
-        } else if (unit === 'm2' && formulaResult.area !== undefined) {
-          // Vidrios: costo por m² × área × cantidad
-          materialCost = unitCost * formulaResult.area * formulaResult.quantity;
-        } else if (unit === 'u') {
-          // Accesorios: costo por unidad × cantidad
-          materialCost = unitCost * formulaResult.quantity;
-        } else {
-          // Fallback: usar costo base × cantidad
-          materialCost = unitCost * formulaResult.quantity;
+        // Determinar la dimensión lineal principal (Largo, y si está vacío, usar Ancho o Alto)
+        const linearDimension = formulaResult.length ?? formulaResult.width ?? formulaResult.height;
+
+        // Determinar área automáticamente (Base sistema: mm²)
+        let areaMm2: number | undefined = undefined;
+        if (formulaResult.width !== undefined && formulaResult.height !== undefined) {
+          areaMm2 = formulaResult.width * formulaResult.height;
+        } else if (formulaResult.area !== undefined) {
+          // Si por alguna razón el ingeniero solo puso área (asumimos que la puso en m² como antes)
+          areaMm2 = formulaResult.area * 1000000;
         }
 
-        logs.push(`  Costo material: $${materialCost.toFixed(2)}`);
+        // Detección Flexible de Unidades (Tolerante a errores de tipeo como "Pies Cuadrados(p2)")
+        const isAreaFt2 = rawUnit.includes('ft2') || rawUnit.includes('pc') || rawUnit.includes('cuadrad') || rawUnit.includes('p2');
+        const isAreaM2 = rawUnit.includes('m2') || rawUnit.includes('mt2');
+        const isArea = isAreaFt2 || isAreaM2;
+        
+        const isLinearFt = rawUnit.includes('ft') || rawUnit.includes('pl') || rawUnit.includes('pie') || rawUnit.includes('lineal');
+        const isLinearIn = rawUnit === 'in' || rawUnit.includes('plg') || rawUnit.includes('pulg');
+        const isLinearCm = rawUnit === 'cm' || rawUnit.includes('cent');
+        const isLinearM = rawUnit === 'm' || rawUnit === 'mt' || rawUnit === 'ml' || rawUnit.includes('metro');
+        const isLinear = !isArea && (isLinearFt || isLinearIn || isLinearCm || isLinearM);
+
+        if (isLinear && linearDimension !== undefined) {
+          // Longitud (Base sistema: mm)
+          let divisor = 1;
+          if (isLinearCm) divisor = 10;
+          else if (isLinearM) divisor = 1000;
+          else if (isLinearIn) divisor = 25.4;
+          else if (isLinearFt) divisor = 304.8;
+          
+          const lengthInCatalogUnit = linearDimension / divisor;
+          materialCost = unitCost * lengthInCatalogUnit * formulaResult.quantity;
+          logs.push(`  Líneal (${rawUnit}): ${linearDimension}mm → ${lengthInCatalogUnit.toFixed(4)} unidades × $${unitCost.toFixed(2)} × ${formulaResult.quantity} = $${materialCost.toFixed(2)}`);
+          
+        } else if (isArea && areaMm2 !== undefined) {
+          // Área (Convertir directamente de mm² a la unidad del catálogo)
+          let divisor = 1;
+          if (isAreaM2) divisor = 1000000;
+          else if (isAreaFt2) divisor = 92903.04;
+          
+          const areaInCatalogUnit = areaMm2 / divisor;
+          materialCost = unitCost * areaInCatalogUnit * formulaResult.quantity;
+          logs.push(`  Área (${rawUnit}): ${areaMm2}mm² → ${areaInCatalogUnit.toFixed(4)} unidades × $${unitCost.toFixed(2)} × ${formulaResult.quantity} = $${materialCost.toFixed(2)}`);
+          
+        } else {
+          // Fallback / Discreto (Unidades, pares, juegos)
+          materialCost = unitCost * formulaResult.quantity;
+          logs.push(`  Unidad (${rawUnit}): $${unitCost.toFixed(2)} × ${formulaResult.quantity} = $${materialCost.toFixed(2)}`);
+        }
+
         totalMaterialCost += materialCost;
       }
 
@@ -242,6 +277,37 @@ export class EngineeringEngineService {
     logs.push(`Costo total de materiales: $${totalMaterialCost.toFixed(2)}`);
     logs.push(`Componentes incluidos: ${componentResults.filter((c) => c.included).length}/${componentResults.length}`);
 
+    let totalAreaMm2 = 0;
+    let totalAreaUnit = 0;
+    
+    // Helper to find variable ignoring case in both numericVariables and inputVariables
+    const findVar = (keys: string[]) => {
+      for (const k of Object.keys(numericVariables)) {
+        if (keys.includes(k.toUpperCase())) return numericVariables[k];
+      }
+      for (const k of Object.keys(inputVariables)) {
+        if (keys.includes(k.toUpperCase())) {
+          const val = inputVariables[k];
+          return typeof val === 'number' ? val : (parseFloat(String(val)) || 0);
+        }
+      }
+      return 0;
+    };
+    
+    const mainAncho = findVar(['ANCHO', 'W', 'WIDTH', 'X']);
+    const mainAlto = findVar(['ALTO', 'H', 'HEIGHT', 'Y']);
+    if (mainAncho && mainAlto) {
+      totalAreaMm2 = mainAncho * mainAlto;
+      // Convert based on template area_unit
+      // If m2, divide by 1_000_000. If sqft, divide by 92903.04.
+      // Or we can convert mm to m (divide by 1000) or ft (divide by 304.8) first.
+      if ((template as any).area_unit === 'sqft') {
+        totalAreaUnit = (mainAncho / 304.8) * (mainAlto / 304.8);
+      } else {
+        totalAreaUnit = (mainAncho / 1000) * (mainAlto / 1000);
+      }
+    }
+
     return {
       templateId: template.id,
       templateName: template.name,
@@ -249,6 +315,16 @@ export class EngineeringEngineService {
       inputVariables,
       components: componentResults,
       totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+      
+      pricingMethod: (template as any).pricing_method || 'cost',
+      areaUnit: (template as any).area_unit || 'm2',
+      areaPriceL1: (template as any).area_price_l1 ? Number((template as any).area_price_l1) : null,
+      areaPriceL2: (template as any).area_price_l2 ? Number((template as any).area_price_l2) : null,
+      areaPriceL3: (template as any).area_price_l3 ? Number((template as any).area_price_l3) : null,
+      areaPriceL4: (template as any).area_price_l4 ? Number((template as any).area_price_l4) : null,
+      totalAreaMm2,
+      totalAreaUnit,
+      
       calculatedAt: new Date(),
       logs,
     };

@@ -24,6 +24,9 @@ import { CatalogSystemsModule } from './modules/catalog-systems/catalog-systems.
 import { CatalogFinishesModule } from './modules/catalog-finishes/catalog-finishes.module';
 import { CatalogItemsModule } from './modules/catalog-items/catalog-items.module';
 import { EngineeringModule } from './modules/engineering/engineering.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { QuotesModule } from './modules/quotes/quotes.module';
 
 @Module({
   imports: [
@@ -49,6 +52,9 @@ import { EngineeringModule } from './modules/engineering/engineering.module';
     CatalogFinishesModule,
     CatalogItemsModule,
     EngineeringModule,
+    ClientsModule,
+    ProjectsModule,
+    QuotesModule,
   ],
   controllers: [AppController],
   providers: [

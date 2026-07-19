@@ -3,21 +3,28 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EngineeringService } from '../../../core/services/engineering.service';
 import { CommonModule } from '@angular/common';
+import { mmToFractionalInches } from '../../../core/utils/math.utils';
+import { TenantCurrencyPipe } from '../../../core/pipes/tenant-currency.pipe';
 
 @Component({
   selector: 'app-simulator',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TenantCurrencyPipe],
   templateUrl: './simulator.html',
+  providers: [TenantCurrencyPipe],
 })
 export class SimulatorComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private engineeringService = inject(EngineeringService);
   private fb = inject(FormBuilder);
+  private currencyPipe = inject(TenantCurrencyPipe);
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+
+  // Utilities
+  mmToFractionalInches = mmToFractionalInches;
 
   // Core Data
   templateId = signal<string>('');
@@ -102,6 +109,21 @@ export class SimulatorComponent implements OnInit {
     }
   }
 
+  focusNextInput(event: Event) {
+    event.preventDefault();
+    const target = event.target as HTMLElement;
+    const form = target.closest('form');
+    if (form) {
+      const inputs = Array.from(form.querySelectorAll('input, select')) as HTMLElement[];
+      const index = inputs.indexOf(target);
+      if (index > -1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      } else if (index === inputs.length - 1) {
+        target.blur();
+      }
+    }
+  }
+
   getIncludedComponentsCount(): number {
     return this.simulationResult()?.components?.filter((c: any) => c.included).length || 0;
   }
@@ -137,13 +159,26 @@ export class SimulatorComponent implements OnInit {
       .filter((c: any) => c.included)
       .map((c: any) => {
         const qty = c.formulas.quantity;
-        const costStr = c.materialCost ? `$${Number(c.materialCost).toFixed(2)}` : '$0.00';
+        const costStr = c.materialCost ? this.currencyPipe.transform(c.materialCost) : this.currencyPipe.transform(0);
         
         let dimsHtml = '';
-        if (c.formulas.length !== undefined) dimsHtml += `<div>Largo: <strong>${c.formulas.length} mm</strong></div>`;
-        if (c.formulas.width !== undefined) dimsHtml += `<div>Ancho: <strong>${c.formulas.width} mm</strong></div>`;
-        if (c.formulas.height !== undefined) dimsHtml += `<div>Alto: <strong>${c.formulas.height} mm</strong></div>`;
-        if (c.formulas.area !== undefined) dimsHtml += `<div>Área: <strong>${c.formulas.area} m²</strong></div>`;
+        let inchesHtml = '';
+        if (c.formulas.length !== undefined) {
+          dimsHtml += `<div>Largo: <strong>${c.formulas.length} mm</strong></div>`;
+          inchesHtml += `<div>Largo: <strong>${this.mmToFractionalInches(c.formulas.length)}</strong></div>`;
+        }
+        if (c.formulas.width !== undefined) {
+          dimsHtml += `<div>Ancho: <strong>${c.formulas.width} mm</strong></div>`;
+          inchesHtml += `<div>Ancho: <strong>${this.mmToFractionalInches(c.formulas.width)}</strong></div>`;
+        }
+        if (c.formulas.height !== undefined) {
+          dimsHtml += `<div>Alto: <strong>${c.formulas.height} mm</strong></div>`;
+          inchesHtml += `<div>Alto: <strong>${this.mmToFractionalInches(c.formulas.height)}</strong></div>`;
+        }
+        if (c.formulas.area !== undefined) {
+          dimsHtml += `<div>Área: <strong>${c.formulas.area} m²</strong></div>`;
+          inchesHtml += `<div>Área: <strong>-</strong></div>`;
+        }
         
         return `
           <tr>
@@ -154,6 +189,7 @@ export class SimulatorComponent implements OnInit {
             <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; text-transform: uppercase; font-family: monospace;">${this.getComponentTypeLabel(c.type)}</td>
             <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: top; font-weight: bold; font-family: monospace;">${qty}</td>
             <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 11px; color: #334155; line-height: 1.4;">${dimsHtml}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 11px; color: #334155; line-height: 1.4;">${inchesHtml}</td>
             <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: top; font-weight: bold; font-family: monospace;">${costStr}</td>
           </tr>
         `;
@@ -413,7 +449,7 @@ export class SimulatorComponent implements OnInit {
           <!-- Costo Estimado -->
           <div class="cost-card">
             <span>Costo Estimado de Materiales</span>
-            <h2>$${Number(result.totalMaterialCost || 0).toFixed(2)}</h2>
+            <h2>${this.currencyPipe.transform(result.totalMaterialCost || 0)}</h2>
             <p>Calculado dinámicamente según precios del catálogo maestro de materiales.</p>
           </div>
         </div>
@@ -425,7 +461,8 @@ export class SimulatorComponent implements OnInit {
               <th>Pieza / Componente</th>
               <th>Tipo</th>
               <th style="text-align: center;">Cant.</th>
-              <th>Cálculos Dimensiones</th>
+              <th>Dimensiones (mm)</th>
+              <th>Dimensiones (pulg.)</th>
               <th style="text-align: right;">Costo Est.</th>
             </tr>
           </thead>

@@ -4,6 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CommonModule } from '@angular/common';
 
+import { COUNTRIES_LIST } from '../../admin/company/company';
+
 @Component({
   selector: 'app-register-tenant',
   standalone: true,
@@ -18,11 +20,13 @@ export class RegisterTenantComponent {
   errorMessage = signal<string | null>(null);
   isLoading = signal<boolean>(false);
   isSuccess = signal<boolean>(false);
+  countriesList = COUNTRIES_LIST;
 
   registerForm = this.fb.group({
     tenantName: ['', [Validators.required]],
     tenantSlug: ['', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]],
     phone: ['', [Validators.required]],
+    country: ['', [Validators.required]],
     adminEmail: ['', [Validators.required, Validators.email]],
     adminFirstName: ['', [Validators.required]],
     adminLastName: ['', [Validators.required]],
@@ -73,8 +77,16 @@ export class RegisterTenantComponent {
 
     try {
       // Remove confirmPassword from payload
-      const payload = { ...this.registerForm.value };
-      delete (payload as any).confirmPassword;
+      const payload: any = { ...this.registerForm.value };
+      delete payload.confirmPassword;
+
+      // Append currency configurations based on selected country
+      const countryObj = this.countriesList.find(c => c.name === payload.country);
+      if (countryObj) {
+        payload.currencyCode = countryObj.code;
+        payload.currencySymbol = countryObj.symbol;
+        payload.currencyLocale = countryObj.locale;
+      }
 
       await this.authService.registerTenant(payload);
       this.isSuccess.set(true);

@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateTemplateDto {
   @IsString({ message: 'El nombre de la plantilla debe ser una cadena de texto' })
@@ -24,4 +25,32 @@ export class UpdateTemplateDto {
   @IsString({ message: 'La imagen del producto debe ser una cadena de texto' })
   @IsOptional()
   image?: string;
+
+  @IsString()
+  @IsOptional()
+  pricingMethod?: string;
+
+  @IsString()
+  @IsOptional()
+  areaUnit?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  areaPriceL1?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  areaPriceL2?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  areaPriceL3?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  areaPriceL4?: number;
 }

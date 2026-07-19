@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { RoleService } from '../../../core/services/role.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -14,6 +15,7 @@ export class UsersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
   private roleService = inject(RoleService);
+  authService = inject(AuthService);
 
   users = signal<any[]>([]);
   roles = signal<any[]>([]);

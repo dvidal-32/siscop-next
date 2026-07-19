@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { PlatformService } from '../../../core/services/platform.service';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-platform-settings',
@@ -12,6 +13,7 @@ import { CommonModule } from '@angular/common';
 export class PlatformSettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private platformService = inject(PlatformService);
+  authService = inject(AuthService);
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);

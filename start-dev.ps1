@@ -81,7 +81,7 @@ if (-not (Test-Path "backend/node_modules")) {
 # Run database migrations
 Write-Host "Applying database migrations via Prisma..." -ForegroundColor Yellow
 Push-Location backend
-npx prisma migrate dev
+npx prisma db push
 $exitCode = $LASTEXITCODE
 Pop-Location
 if ($exitCode -ne 0) {

@@ -16,6 +16,16 @@ export class SettingsService {
   async upsertMany(dto: UpdateSettingsDto, tenantId: string) {
     return this.prisma.$transaction(async (tx) => {
       const results: any[] = [];
+      const keysToKeep = dto.settings.map(s => s.key);
+
+      // Delete settings that were removed from the UI
+      await tx.tenantSetting.deleteMany({
+        where: {
+          tenant_id: tenantId,
+          key: { notIn: keysToKeep }
+        }
+      });
+
       for (const item of dto.settings) {
         const setting = await tx.tenantSetting.upsert({
           where: {

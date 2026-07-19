@@ -90,6 +90,12 @@ export class EngineeringService {
         system_id: dto.systemId || null,
         is_active: dto.isActive ?? true,
         image: dto.image || null,
+        pricing_method: dto.pricingMethod || 'cost',
+        area_unit: dto.areaUnit || 'm2',
+        area_price_l1: dto.areaPriceL1 || null,
+        area_price_l2: dto.areaPriceL2 || null,
+        area_price_l3: dto.areaPriceL3 || null,
+        area_price_l4: dto.areaPriceL4 || null,
       },
       include: { system: true },
     });
@@ -99,20 +105,17 @@ export class EngineeringService {
     const template = await this.prisma.engineeringTemplate.findFirst({
       where: { id, tenant_id: tenantId },
     });
+
     if (!template) {
       throw new NotFoundException('Plantilla de ingeniería no encontrada');
     }
 
-    if (dto.code) {
+    if (dto.code && dto.code !== template.code) {
       const existing = await this.prisma.engineeringTemplate.findFirst({
-        where: {
-          tenant_id: tenantId,
-          code: { equals: dto.code, mode: 'insensitive' },
-          id: { not: id },
-        },
+        where: { tenant_id: tenantId, code: { equals: dto.code, mode: 'insensitive' } },
       });
       if (existing) {
-        throw new ConflictException('Ya existe otra plantilla con este código');
+        throw new ConflictException('Ya existe una plantilla con este código');
       }
     }
 
@@ -125,19 +128,30 @@ export class EngineeringService {
       }
     }
 
+    const data: any = {
+      name: dto.name,
+      code: dto.code,
+      description: dto.description,
+      system_id: dto.systemId,
+      is_active: dto.isActive,
+      image: dto.image,
+      pricing_method: dto.pricingMethod,
+      area_unit: dto.areaUnit,
+      area_price_l1: dto.areaPriceL1,
+      area_price_l2: dto.areaPriceL2,
+      area_price_l3: dto.areaPriceL3,
+      area_price_l4: dto.areaPriceL4,
+    };
+
+    Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
+
     return this.prisma.engineeringTemplate.update({
       where: { id },
-      data: {
-        name: dto.name,
-        code: dto.code,
-        description: dto.description,
-        system_id: dto.systemId !== undefined ? dto.systemId : template.system_id,
-        is_active: dto.isActive,
-        image: dto.image !== undefined ? (dto.image || null) : template.image,
-      },
+      data,
       include: { system: true },
     });
   }
+
 
   async deleteTemplate(id: string, tenantId: string) {
     const template = await this.prisma.engineeringTemplate.findFirst({

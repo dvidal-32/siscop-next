@@ -1,0 +1,496 @@
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- UPDATE START ---
+DTO received: {"firstName":"carilis","lastName":"hernandez","roleIds":["89ed214b-28da-40ab-95bb-3189ff8b96af"],"password":"123456"}
+Password was provided. Hashed: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$RFaSPGSUtV4i19oMR3eZIOtkwEYqQTNPvMx8oXDGiHsBBXVWUqZ/m
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- UPDATE START ---
+DTO received: {"firstName":"carilis","lastName":"hernandez","roleIds":["37c1cfca-8e74-4878-a5fd-8a4a4f61586e","89ed214b-28da-40ab-95bb-3189ff8b96af"]}
+No password provided in DTO.
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- UPDATE START ---
+DTO received: {"firstName":"carilis","lastName":"hernandez","roleIds":["89ed214b-28da-40ab-95bb-3189ff8b96af"]}
+No password provided in DTO.
+
+--- LOGIN ATTEMPT ---
+Email: carilish.siscop@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$mC85IrzcY5t3h2zSH8czHOzeVSXNISnRerT55dnWDu/QzLFPNrEBa
+Match: true
+
+--- UPDATE START ---
+DTO received: {"firstName":"carilis","lastName":"hernandez","roleIds":["37c1cfca-8e74-4878-a5fd-8a4a4f61586e","89ed214b-28da-40ab-95bb-3189ff8b96af"]}
+No password provided in DTO.
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$RFaSPGSUtV4i19oMR3eZIOtkwEYqQTNPvMx8oXDGiHsBBXVWUqZ/m
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: nino@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$PKG3cR7r75hBEcOoZn0uIuWdweayFKqaJ9jyxSHQepJ5Lw23WopMK
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: nino@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$PKG3cR7r75hBEcOoZn0uIuWdweayFKqaJ9jyxSHQepJ5Lw23WopMK
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$HblYGe5U7QNNFOr08G0yGu31w5xJm7nGYPrmCk0cl0bhsAUqKrHHa
+Match: true

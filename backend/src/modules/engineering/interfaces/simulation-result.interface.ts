@@ -29,6 +29,17 @@ export interface SimulationResult {
   inputVariables: Record<string, number | string | boolean>;
   components: ComponentResult[];
   totalMaterialCost: number;
+  
+  // Pricing metadata
+  pricingMethod?: string;
+  areaUnit?: string;
+  areaPriceL1?: number | null;
+  areaPriceL2?: number | null;
+  areaPriceL3?: number | null;
+  areaPriceL4?: number | null;
+  totalAreaMm2?: number;
+  totalAreaUnit?: number;
+  
   calculatedAt: Date;
   logs: string[];
 }

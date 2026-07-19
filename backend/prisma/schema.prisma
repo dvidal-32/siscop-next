@@ -65,6 +65,9 @@ model Tenant {
   finishes               CatalogFinish[]
   catalog_items          CatalogItem[]
   engineering_templates  EngineeringTemplate[]
+  clients                Client[]
+  projects               Project[]
+  quotes                 Quote[]
 
   @@index([status])
   @@index([plan_id])
@@ -449,8 +452,16 @@ model EngineeringTemplate {
   created_at          DateTime  @default(now())
   updated_at          DateTime  @updatedAt
 
+  pricing_method      String    @default("cost") // "cost" | "area"
+  area_unit           String    @default("m2") // "m2" | "sqft"
+  area_price_l1       Decimal?  @db.Decimal(10, 2)
+  area_price_l2       Decimal?  @db.Decimal(10, 2)
+  area_price_l3       Decimal?  @db.Decimal(10, 2)
+  area_price_l4       Decimal?  @db.Decimal(10, 2)
+
   variables           EngineeringVariable[]
   components          EngineeringComponent[]
+  quoted_products     QuotedProduct[]
 
   @@unique([tenant_id, code])
   @@index([tenant_id])
@@ -540,4 +551,157 @@ model EngineeringRule {
 
   @@index([component_id])
   @@map("engineering_rules")
+}
+
+// ──────────────────────────────────────────────
+// MÓDULO COMERCIAL: CLIENTES
+// ──────────────────────────────────────────────
+model Client {
+  id         String    @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name       String
+  tax_id     String?
+  email      String?
+  phone      String?
+  address    String?
+  price_list_level Int @default(1) // 1, 2, 3, 4
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+
+  contacts   Contact[]
+  projects   Project[]
+
+  @@index([tenant_id])
+  @@index([is_active])
+  @@map("clients")
+}
+
+// ──────────────────────────────────────────────
+// CONTACTOS DE CLIENTES
+// ──────────────────────────────────────────────
+model Contact {
+  id         String   @id @default(uuid())
+  client_id  String
+  client     Client   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  first_name String
+  last_name  String?
+  email      String?
+  phone      String?
+  position   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([client_id])
+  @@map("contacts")
+}
+
+// ──────────────────────────────────────────────
+// PROYECTOS
+// ──────────────────────────────────────────────
+model Project {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  client_id   String
+  client      Client   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  address     String?
+  status      String   @default("active") // active, completed, cancelled
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  created_by  String?
+  updated_by  String?
+
+  quotes      Quote[]
+
+  @@index([tenant_id])
+  @@index([client_id])
+  @@map("projects")
+}
+
+// ──────────────────────────────────────────────
+// COTIZACIONES
+// ──────────────────────────────────────────────
+model Quote {
+  id              String         @id @default(uuid())
+  tenant_id       String
+  tenant          Tenant         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  project_id      String
+  project         Project        @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  code            String         // e.g. "COT-2026-0001" (autogenerado)
+  current_version Int            @default(1)
+  status          String         @default("draft") // draft, sent, approved, rejected, cancelled
+  total           Decimal        @default(0.0) @db.Decimal(12, 2)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  created_by      String?
+  updated_by      String?
+
+  versions        QuoteVersion[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id])
+  @@index([project_id])
+  @@map("quotes")
+}
+
+// ──────────────────────────────────────────────
+// VERSIONES DE COTIZACIONES
+// ──────────────────────────────────────────────
+model QuoteVersion {
+  id                 String          @id @default(uuid())
+  quote_id           String
+  quote              Quote           @relation(fields: [quote_id], references: [id], onDelete: Cascade)
+  version_number     Int
+  status             String          @default("draft") // draft, sent, approved, rejected
+  subtotal           Decimal         @default(0.0) @db.Decimal(12, 2)
+  discount           Decimal         @default(0.0) @db.Decimal(12, 2)
+  tax                Decimal         @default(0.0) @db.Decimal(12, 2)
+  total              Decimal         @default(0.0) @db.Decimal(12, 2)
+  margin             Decimal?        @db.Decimal(5, 2)  // e.g. 1.40 = 40%
+  payment_conditions String?
+  is_current         Boolean         @default(true)
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+
+  products           QuotedProduct[]
+
+  @@unique([quote_id, version_number])
+  @@index([quote_id])
+  @@map("quote_versions")
+}
+
+// ──────────────────────────────────────────────
+// PRODUCTOS COTIZADOS
+// ──────────────────────────────────────────────
+model QuotedProduct {
+  id                   String              @id @default(uuid())
+  quote_version_id     String
+  quote_version        QuoteVersion        @relation(fields: [quote_version_id], references: [id], onDelete: Cascade)
+  template_id          String
+  template             EngineeringTemplate @relation(fields: [template_id], references: [id])
+  name                 String
+  width                Decimal             @db.Decimal(10, 2)  // mm
+  height               Decimal             @db.Decimal(10, 2)  // mm
+  area                 Decimal             @default(0.0) @db.Decimal(10, 2) // m2 o sqft
+  quantity             Int                 @default(1)
+  unit_cost            Decimal             @default(0.0) @db.Decimal(12, 2) // Costo calculado
+  unit_price           Decimal             @default(0.0) @db.Decimal(12, 2) // Costo + margen
+  total_price          Decimal             @default(0.0) @db.Decimal(12, 2)
+  pricing_method       String              @default("cost") // "cost" | "area"
+  applied_price_list   Int?                // 1, 2, 3, 4
+  // Snapshot completo del resultado del motor al momento de cotizar
+  engineering_snapshot Json
+  notes                String?
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+
+  @@index([quote_version_id])
+  @@index([template_id])
+  @@map("quoted_products")
 }

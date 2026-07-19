@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { RequirePermissions } from '../../shared/decorators/require-permissions.decorator';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 
 @Controller('permissions')
 export class PermissionsController {
@@ -8,7 +9,8 @@ export class PermissionsController {
 
   @Get()
   @RequirePermissions('roles.view')
-  findAll() {
-    return this.permissionsService.findAll();
+  findAll(@CurrentUser() user: any) {
+    const isSuperAdmin = user.realTenantId === null;
+    return this.permissionsService.findAll(isSuperAdmin);
   }
 }

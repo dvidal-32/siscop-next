@@ -1,0 +1,268 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">Clientes</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Administra tus clientes y sus contactos.</p>
+    </div>
+    @if (authService.hasPermission('clients.create')) {
+      <button
+        (click)="openCreate()"
+        class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2 border-none"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" />
+        </svg>
+        Nuevo Cliente
+      </button>
+    }
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="errorMessage()" class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+    {{ errorMessage() }}
+  </div>
+  <div *ngIf="successMessage()" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+    {{ successMessage() }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading() && clients().length === 0" class="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-md">
+    <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-slate-500 dark:text-slate-400 text-sm mt-4">Cargando clientes...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading() && clients().length === 0" class="flex flex-col items-center justify-center p-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center shadow-lg">
+    <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 mx-auto mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+    </div>
+    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">No hay clientes registrados</h3>
+    <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-6">Comienza registrando tu primer cliente para poder crear proyectos y cotizaciones.</p>
+    @if (authService.hasPermission('clients.create')) {
+      <button (click)="openCreate()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium text-sm transition-all border-none">Nuevo Cliente</button>
+    }
+  </div>
+
+  <!-- Clients Table -->
+  <div *ngIf="clients().length > 0" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+        <tr>
+          <th class="text-left px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Nombre</th>
+          <th class="text-left px-6 py-4 font-semibold text-slate-600 dark:text-slate-300 hidden md:table-cell">Email</th>
+          <th class="text-left px-6 py-4 font-semibold text-slate-600 dark:text-slate-300 hidden lg:table-cell">Teléfono</th>
+          <th class="text-center px-6 py-4 font-semibold text-slate-600 dark:text-slate-300 hidden md:table-cell">Contactos</th>
+          <th class="text-center px-6 py-4 font-semibold text-slate-600 dark:text-slate-300 hidden md:table-cell">Proyectos</th>
+          <th class="text-center px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Estado</th>
+          <th class="text-right px-6 py-4 font-semibold text-slate-600 dark:text-slate-300">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        <tr *ngFor="let client of filteredClients" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+          <td class="px-6 py-4">
+            <div class="font-semibold text-slate-800 dark:text-white">{{ client.name }}</div>
+            <div *ngIf="client.tax_id" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ client.tax_id }}</div>
+          </td>
+          <td class="px-6 py-4 text-slate-600 dark:text-slate-400 hidden md:table-cell">{{ client.email || '—' }}</td>
+          <td class="px-6 py-4 text-slate-600 dark:text-slate-400 hidden lg:table-cell">{{ client.phone || '—' }}</td>
+          <td class="px-6 py-4 text-center hidden md:table-cell">
+            <button (click)="openContactsPanel(client)" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 font-medium transition-colors">
+              <span class="bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-full px-2 py-0.5">{{ client._count?.contacts ?? 0 }}</span>
+            </button>
+          </td>
+          <td class="px-6 py-4 text-center hidden md:table-cell">
+            <span class="inline-flex items-center gap-1">
+              <a [routerLink]="['/commercial/projects']" [queryParams]="{ clientId: client.id }" class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-full px-2 py-0.5 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors">
+                {{ client._count?.projects ?? 0 }}
+              </a>
+            </span>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span [class]="client.is_active
+              ? 'inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+              : 'inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'">
+              {{ client.is_active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button (click)="openContactsPanel(client)" title="Ver Contactos" class="p-2 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all border-none bg-transparent cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+              </button>
+              @if (authService.hasPermission('clients.update')) {
+                <button (click)="openEdit(client)" title="Editar" class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all border-none bg-transparent cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                </button>
+              }
+              @if (authService.hasPermission('clients.delete')) {
+                <button (click)="deleteClient(client)" title="Eliminar" class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border-none bg-transparent cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create/Edit Client Modal -->
+<div *ngIf="showModal()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeModal()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+      <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ selectedClient() ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
+      <button (click)="closeModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border-none bg-transparent cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    <form [formGroup]="clientForm" (ngSubmit)="save()" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nombre / Razón Social *</label>
+        <input formControlName="name" type="text" placeholder="Ej: Constructora ABC S.A."
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">RUT / ID Fiscal</label>
+        <input formControlName="tax_id" type="text" placeholder="Ej: 12.345.678-9"
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+          <input formControlName="email" type="email" placeholder="cliente@empresa.com"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Teléfono</label>
+          <input formControlName="phone" type="text" placeholder="+56 9 1234 5678"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Dirección</label>
+        <input formControlName="address" type="text" placeholder="Calle, número, ciudad"
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lista de Precios Asignada *</label>
+        <select formControlName="price_list_level"
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+          <option [ngValue]="1">Lista de Precios 1</option>
+          <option [ngValue]="2">Lista de Precios 2</option>
+          <option [ngValue]="3">Lista de Precios 3</option>
+          <option [ngValue]="4">Lista de Precios 4</option>
+        </select>
+      </div>
+      <div *ngIf="selectedClient()" class="flex items-center gap-3">
+        <input formControlName="is_active" type="checkbox" id="is_active" class="w-4 h-4 rounded accent-indigo-600" />
+        <label for="is_active" class="text-sm text-slate-700 dark:text-slate-300">Cliente activo</label>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="closeModal()" class="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium text-sm transition-all border-none cursor-pointer">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="clientForm.invalid || isSaving()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all border-none cursor-pointer disabled:opacity-60">
+          {{ isSaving() ? 'Guardando...' : (selectedClient() ? 'Guardar Cambios' : 'Crear Cliente') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Contacts Side Panel -->
+<div *ngIf="showContactsPanel()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-end z-50" (click)="closeContactsPanel()">
+  <div class="bg-white dark:bg-slate-900 h-full w-full max-w-md shadow-2xl flex flex-col" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800 dark:text-white">Contactos</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ activeClientForContacts()?.name }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="openCreateContact()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all border-none cursor-pointer flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" /></svg>
+          Agregar
+        </button>
+        <button (click)="closeContactsPanel()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border-none bg-transparent cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 space-y-3">
+      <div *ngIf="contacts().length === 0" class="flex flex-col items-center justify-center py-16 text-center">
+        <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+        </div>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">Sin contactos registrados</p>
+      </div>
+      <div *ngFor="let contact of contacts()" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-start justify-between gap-3">
+        <div>
+          <div class="font-semibold text-slate-800 dark:text-white text-sm">{{ contact.first_name }} {{ contact.last_name }}</div>
+          <div *ngIf="contact.position" class="text-xs text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{{ contact.position }}</div>
+          <div *ngIf="contact.email" class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ contact.email }}</div>
+          <div *ngIf="contact.phone" class="text-xs text-slate-500 dark:text-slate-400">{{ contact.phone }}</div>
+        </div>
+        <div class="flex gap-1.5 flex-shrink-0">
+          <button (click)="openEditContact(contact)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all border-none bg-transparent cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+          </button>
+          <button (click)="deleteContact(contact)" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border-none bg-transparent cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Create/Edit Modal -->
+<div *ngIf="showContactModal()" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4" (click)="closeContactModal()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+      <h2 class="text-lg font-bold text-slate-800 dark:text-white">{{ selectedContact() ? 'Editar Contacto' : 'Nuevo Contacto' }}</h2>
+      <button (click)="closeContactModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border-none bg-transparent cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    <form [formGroup]="contactForm" (ngSubmit)="saveContact()" class="p-5 space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nombre *</label>
+          <input formControlName="first_name" type="text" placeholder="Juan"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Apellido</label>
+          <input formControlName="last_name" type="text" placeholder="Pérez"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Cargo</label>
+        <input formControlName="position" type="text" placeholder="Ej: Gerente de Proyecto"
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+          <input formControlName="email" type="email" placeholder="juan@empresa.com"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Teléfono</label>
+          <input formControlName="phone" type="text" placeholder="+56 9 1234 5678"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="closeContactModal()" class="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium text-sm transition-all border-none cursor-pointer">Cancelar</button>
+        <button type="submit" [disabled]="contactForm.invalid || isSaving()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all border-none cursor-pointer disabled:opacity-60">
+          {{ isSaving() ? 'Guardando...' : (selectedContact() ? 'Guardar' : 'Agregar') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

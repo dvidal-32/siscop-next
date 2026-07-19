@@ -26,6 +26,10 @@ import { FormulasComponent } from './features/engineering/formulas/formulas';
 import { SimulatorComponent } from './features/engineering/simulator/simulator';
 import { LibraryComponent } from './features/engineering/library/library';
 
+import { ClientsComponent } from './features/commercial/clients/clients';
+import { ProjectsComponent } from './features/commercial/projects/projects';
+import { QuotesComponent } from './features/commercial/quotes/quotes';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -150,6 +154,25 @@ export const routes: Routes = [
         component: LibraryComponent,
         canActivate: [permissionGuard],
         data: { permission: 'engineering.import' },
+      },
+      // Rutas del Módulo Comercial
+      {
+        path: 'commercial/clients',
+        component: ClientsComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'clients.view' },
+      },
+      {
+        path: 'commercial/projects',
+        component: ProjectsComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'projects.view' },
+      },
+      {
+        path: 'commercial/quotes',
+        component: QuotesComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'quotes.view' },
       },
     ],
   },

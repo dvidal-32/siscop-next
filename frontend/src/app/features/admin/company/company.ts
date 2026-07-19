@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TenantService } from '../../../core/services/tenant.service';
@@ -9,6 +9,44 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 
+export const SETTINGS_SCHEMA = {
+  // Ingeniería y Producción
+  'LARGO_BARRA_STAND': { category: 'Ingeniería y Producción', label: 'Largo Estándar de Barra', type: 'number', suffix: 'm' },
+  'MERMA_ALUMINIO': { category: 'Ingeniería y Producción', label: 'Merma de Aluminio', type: 'number', suffix: '%' },
+  'MERMA_VIDRIO': { category: 'Ingeniería y Producción', label: 'Merma de Vidrio', type: 'number', suffix: '%' },
+  'MERMA_ACCESORIOS': { category: 'Ingeniería y Producción', label: 'Merma de Accesorios', type: 'number', suffix: '%' },
+
+  // Costos Operativos y Mano de Obra
+  'COSTO_HORA_FABRICACION': { category: 'Costos Operativos y Mano de Obra', label: 'Costo Hora Fabricación', type: 'currency' },
+  'COSTO_HORA_INSTALACION': { category: 'Costos Operativos y Mano de Obra', label: 'Costo Hora Instalación', type: 'currency' },
+  'COSTO_FLETE_KM': { category: 'Costos Operativos y Mano de Obra', label: 'Costo Flete por Km', type: 'currency' },
+  'FACTOR_DIFICULTAD_ALTURA': { category: 'Costos Operativos y Mano de Obra', label: 'Factor Dificultad Altura', type: 'number', suffix: 'x' },
+
+  // Márgenes de Utilidad (Comercial)
+  'MARGEN_UTILIDAD_ALUMINIO': { category: 'Márgenes de Utilidad (Comercial)', label: 'Margen Aluminio', type: 'number', suffix: '%' },
+  'MARGEN_UTILIDAD_VIDRIO': { category: 'Márgenes de Utilidad (Comercial)', label: 'Margen Vidrio', type: 'number', suffix: '%' },
+  'MARGEN_UTILIDAD_HERRAJES': { category: 'Márgenes de Utilidad (Comercial)', label: 'Margen Herrajes', type: 'number', suffix: '%' },
+  'MARGEN_GASTOS_INDIRECTOS': { category: 'Márgenes de Utilidad (Comercial)', label: 'Margen Gastos Indirectos', type: 'number', suffix: '%' },
+
+  // Cotizaciones y Formatos
+  'COTIZACION_CONDICIONES': { category: 'Cotizaciones y Formatos', label: 'Condiciones Comerciales', type: 'textarea' },
+  'COTIZACION_NOTAS': { category: 'Cotizaciones y Formatos', label: 'Notas Adicionales', type: 'textarea' },
+};
+
+export const COUNTRIES_LIST = [
+  { name: 'República Dominicana', code: 'DOP', symbol: 'RD$', locale: 'es-DO' },
+  { name: 'México', code: 'MXN', symbol: '$', locale: 'es-MX' },
+  { name: 'Chile', code: 'CLP', symbol: '$', locale: 'es-CL' },
+  { name: 'Colombia', code: 'COP', symbol: '$', locale: 'es-CO' },
+  { name: 'Perú', code: 'PEN', symbol: 'S/', locale: 'es-PE' },
+  { name: 'España', code: 'EUR', symbol: '€', locale: 'es-ES' },
+  { name: 'Estados Unidos', code: 'USD', symbol: '$', locale: 'en-US' },
+  { name: 'Argentina', code: 'ARS', symbol: '$', locale: 'es-AR' },
+  { name: 'Ecuador', code: 'USD', symbol: '$', locale: 'es-EC' },
+  { name: 'Panamá', code: 'PAB', symbol: 'B/.', locale: 'es-PA' },
+  { name: 'Costa Rica', code: 'CRC', symbol: '₡', locale: 'es-CR' },
+];
+
 @Component({
   selector: 'app-company',
   standalone: true,
@@ -18,7 +56,7 @@ import { TableModule } from 'primeng/table';
 export class CompanyComponent implements OnInit {
   private fb = inject(FormBuilder);
   private tenantService = inject(TenantService);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private paymentService = inject(PaymentService);
   private router = inject(Router);
 
@@ -46,6 +84,27 @@ export class CompanyComponent implements OnInit {
   successMessage = signal<string | null>(null);
 
   // Billing states
+  currencySymbol = computed(() => {
+    const symbolSetting = this.tenantService.tenantSettings().find((s: any) => s.key === 'MONEDA_SIMBOLO');
+    return symbolSetting?.value || '$';
+  });
+
+  // Local form state for currency config in General tab
+  countriesList = COUNTRIES_LIST;
+  formCurrencyCode = signal<string>('USD');
+  formCurrencySymbol = signal<string>('$');
+  formCurrencyLocale = signal<string>('en-US');
+
+  onCountryChange(event: any) {
+    const countryName = event.target.value;
+    const countryObj = this.countriesList.find(c => c.name === countryName);
+    if (countryObj) {
+      this.formCurrencyCode.set(countryObj.code);
+      this.formCurrencySymbol.set(countryObj.symbol);
+      this.formCurrencyLocale.set(countryObj.locale);
+    }
+  }
+
   payments = signal<any[]>([]);
   subInfo = signal<any | null>(null);
   isProcessing = signal<boolean>(false);
@@ -138,6 +197,14 @@ export class CompanyComponent implements OnInit {
         }))
       );
 
+      // Load form currency signals
+      const code = settingsData.find(s => s.key === 'MONEDA_CODIGO')?.value || 'USD';
+      this.formCurrencyCode.set(code);
+      const sym = settingsData.find(s => s.key === 'MONEDA_SIMBOLO')?.value || '$';
+      this.formCurrencySymbol.set(sym);
+      const loc = settingsData.find(s => s.key === 'MONEDA_LOCALE')?.value || 'en-US';
+      this.formCurrencyLocale.set(loc);
+
       // 3. Fetch Available Plans
       const plansData = await this.tenantService.getPlans();
       if (!user?.isDemoAvailable) {
@@ -190,6 +257,15 @@ export class CompanyComponent implements OnInit {
 
     try {
       await this.tenantService.update(user.tenantId, payload);
+
+      // Update currency settings
+      this.updateSettingByKey('MONEDA_CODIGO', this.formCurrencyCode());
+      this.updateSettingByKey('MONEDA_SIMBOLO', this.formCurrencySymbol());
+      this.updateSettingByKey('MONEDA_LOCALE', this.formCurrencyLocale());
+
+      // Filter out rows with empty keys
+      const settingsPayload = this.settingsList().filter((s) => s.key.trim() !== '');
+      await this.tenantService.updateSettings(settingsPayload);
       
       if (isPlanChange) {
         const selectedPlan = this.plans().find(p => p.id === selectedPlanId);
@@ -241,15 +317,58 @@ export class CompanyComponent implements OnInit {
       { key: 'MONEDA_SIMBOLO', value: '$', valueType: 'string' },
       { key: 'MONEDA_CODIGO', value: 'USD', valueType: 'string' },
       { key: 'LARGO_BARRA_STAND', value: '6.10', valueType: 'number' },
-      { key: 'COSTO_FLETE_KM', value: '1.50', valueType: 'number' }
+      { key: 'COSTO_FLETE_KM', value: '1.50', valueType: 'number' },
+      { key: 'COTIZACION_CONDICIONES', value: '• Pago: 45 dias\n• Validez: Esta cotización es válida por 15 dias a partir de la fecha de emisión.\n• Los precios mostrados incluyen todos los materiales y labor necesarios.', valueType: 'string' },
+      { key: 'COTIZACION_NOTAS', value: 'Cualquier modificación al diseño original o medidas después de aprobada esta cotización podría generar costos adicionales y cambios en los tiempos de entrega.', valueType: 'string' }
     ];
 
     this.settingsList.set(defaults);
   }
 
+  groupedSettings = computed(() => {
+    const groups: { [category: string]: any[] } = {};
+    const custom: any[] = [];
+    const list = this.settingsList();
+
+    // Initialize all schema categories to maintain order
+    const categories = [
+      'Ingeniería y Producción',
+      'Costos Operativos y Mano de Obra',
+      'Márgenes de Utilidad (Comercial)',
+      'Cotizaciones y Formatos',
+      'General y Regional'
+    ];
+    categories.forEach(cat => groups[cat] = []);
+
+    list.forEach((setting, originalIndex) => {
+      const schemaDef = (SETTINGS_SCHEMA as any)[setting.key];
+      const itemWithMeta = { ...setting, originalIndex, schema: schemaDef };
+      
+      if (schemaDef) {
+        groups[schemaDef.category].push(itemWithMeta);
+      } else {
+        custom.push(itemWithMeta);
+      }
+    });
+
+    return { groups, custom };
+  });
+
   updateSettingValue(index: number, val: string) {
     this.settingsList.update((list) => {
       list[index].value = val;
+      return [...list];
+    });
+  }
+
+  updateSettingByKey(key: string, value: string) {
+    this.settingsList.update((list) => {
+      const item = list.find(s => s.key === key);
+      if (item) {
+        item.value = value;
+      } else {
+        list.push({ key, value, valueType: 'string' });
+      }
       return [...list];
     });
   }

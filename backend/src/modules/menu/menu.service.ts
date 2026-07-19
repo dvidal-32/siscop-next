@@ -11,6 +11,7 @@ export class MenuService implements OnApplicationBootstrap {
     await this.seedDefaultMenu();
     await this.assureBillingPermissions();
     await this.assureEngineeringPermissions();
+    await this.assureCommercialPermissions();
     await this.seedDefaultPlans();
     await this.seedSuperAdminAndPlatformSettings();
   }
@@ -571,10 +572,10 @@ export class MenuService implements OnApplicationBootstrap {
       { code: 'plans.delete', name: 'Eliminar Planes', module: 'plans', action: 'delete' },
       { code: 'platform-settings.view', name: 'Ver Ajustes de Plataforma', module: 'platform-settings', action: 'view' },
       { code: 'platform-settings.update', name: 'Editar Ajustes de Plataforma', module: 'platform-settings', action: 'update' },
-      { code: 'tenants.view', name: 'Ver Tenants', module: 'tenants', action: 'view' },
-      { code: 'tenants.update', name: 'Editar Tenants', module: 'tenants', action: 'update' },
-      { code: 'tenants.suspend', name: 'Suspender Tenants', module: 'tenants', action: 'suspend' },
-      { code: 'tenants.activate', name: 'Activar Tenants', module: 'tenants', action: 'activate' },
+      { code: 'tenants.view', name: 'Ver Compañías', module: 'tenants', action: 'view' },
+      { code: 'tenants.update', name: 'Editar Compañías', module: 'tenants', action: 'update' },
+      { code: 'tenants.suspend', name: 'Suspender Compañías', module: 'tenants', action: 'suspend' },
+      { code: 'tenants.activate', name: 'Activar Compañías', module: 'tenants', action: 'activate' },
       // Permisos de Ingeniería (Tenant)
       { code: 'engineering.view', name: 'Ver Ingeniería', module: 'engineering', action: 'view' },
       { code: 'engineering.create', name: 'Crear Plantillas de Ingeniería', module: 'engineering', action: 'create' },
@@ -797,6 +798,105 @@ export class MenuService implements OnApplicationBootstrap {
       await this.prisma.menuItem.update({
         where: { id: libraryMenu.id },
         data: { order: 3 },
+      });
+    }
+  }
+
+  // ──────────────────────────────────────────────────────
+  // COMMERCIAL MODULE: Clients, Projects, Quotes
+  // ──────────────────────────────────────────────────────
+  private async assureCommercialPermissions() {
+    const permissionsToAssure = [
+      { code: 'clients.view',   name: 'Ver Clientes',    module: 'clients', action: 'view' },
+      { code: 'clients.create', name: 'Crear Clientes',  module: 'clients', action: 'create' },
+      { code: 'clients.update', name: 'Editar Clientes', module: 'clients', action: 'update' },
+      { code: 'clients.delete', name: 'Eliminar Clientes', module: 'clients', action: 'delete' },
+      { code: 'projects.view',   name: 'Ver Proyectos',    module: 'projects', action: 'view' },
+      { code: 'projects.create', name: 'Crear Proyectos',  module: 'projects', action: 'create' },
+      { code: 'projects.update', name: 'Editar Proyectos', module: 'projects', action: 'update' },
+      { code: 'projects.delete', name: 'Eliminar Proyectos', module: 'projects', action: 'delete' },
+      { code: 'quotes.view',    name: 'Ver Cotizaciones',      module: 'quotes', action: 'view' },
+      { code: 'quotes.create',  name: 'Crear Cotizaciones',    module: 'quotes', action: 'create' },
+      { code: 'quotes.update',  name: 'Editar Cotizaciones',   module: 'quotes', action: 'update' },
+      { code: 'quotes.delete',  name: 'Eliminar Cotizaciones', module: 'quotes', action: 'delete' },
+      { code: 'quotes.approve', name: 'Aprobar Cotizaciones',  module: 'quotes', action: 'approve' },
+    ];
+
+    const dbPermissions: any[] = [];
+    for (const perm of permissionsToAssure) {
+      const dbPerm = await this.prisma.permission.upsert({
+        where: { code: perm.code },
+        update: {},
+        create: perm,
+      });
+      dbPermissions.push(dbPerm);
+    }
+
+    // Assign all commercial permissions to every "Administrador" role
+    const adminRoles = await this.prisma.role.findMany({
+      where: { name: 'Administrador' },
+    });
+
+    for (const role of adminRoles) {
+      for (const perm of dbPermissions) {
+        const has = await this.prisma.rolePermission.findUnique({
+          where: { role_id_permission_id: { role_id: role.id, permission_id: perm.id } },
+        });
+        if (!has) {
+          await this.prisma.rolePermission.create({
+            data: { role_id: role.id, permission_id: perm.id },
+          });
+        }
+      }
+    }
+
+    // ── Seed commercial menu items ──
+    let commercialParent = await this.prisma.menuItem.findUnique({
+      where: { code: 'commercial' },
+    });
+
+    if (!commercialParent) {
+      commercialParent = await this.prisma.menuItem.create({
+        data: {
+          code: 'commercial',
+          label: 'Comercial',
+          route: '',
+          icon: 'request_quote',
+          required_permission: 'clients.view',
+          order: 3,
+        },
+      });
+
+      await this.prisma.menuItem.createMany({
+        data: [
+          {
+            parent_id: commercialParent.id,
+            code: 'commercial.clients',
+            label: 'Clientes',
+            route: '/commercial/clients',
+            icon: 'people',
+            required_permission: 'clients.view',
+            order: 0,
+          },
+          {
+            parent_id: commercialParent.id,
+            code: 'commercial.projects',
+            label: 'Proyectos',
+            route: '/commercial/projects',
+            icon: 'business_center',
+            required_permission: 'projects.view',
+            order: 1,
+          },
+          {
+            parent_id: commercialParent.id,
+            code: 'commercial.quotes',
+            label: 'Cotizaciones',
+            route: '/commercial/quotes',
+            icon: 'description',
+            required_permission: 'quotes.view',
+            order: 2,
+          },
+        ],
       });
     }
   }
