@@ -15,6 +15,11 @@ export class PlatformSettingsComponent implements OnInit {
   private platformService = inject(PlatformService);
   authService = inject(AuthService);
 
+  get canSave() {
+    const user = this.authService.currentUser();
+    return this.authService.hasPermission('platform-settings.update') || user?.roles?.some((r: any) => r.name === 'Super Administrador');
+  }
+
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);

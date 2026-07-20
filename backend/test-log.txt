@@ -542,3 +542,306 @@ DTO received: {"name":"Ventana Corrediza Tradicional","code":"VCRCOF","descripti
 
 --- UPDATE TEMPLATE ---
 DTO received: {"name":"Ventana Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Ventana Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"cost","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: Rosinis@hotmail.es
+Provided password: 123456
+Hash in DB: $2b$10$o9.nFIH1yqNocwacvXwoFu.aZqi9eFJ0HOInF6bY7hTvqRJY1awpG
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: superadmin@siscop.next
+Provided password: SuperPassword123!
+Hash in DB: $2b$10$y93A7uCqwg1s.s5V.1MkgOA/QOJTjJimYJOEICyzRqE8zC/qiF.mi
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Ventana Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"cost","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}
+
+--- UPDATE TEMPLATE ---
+DTO received: {"name":"Corrediza Tradicional","code":"VCRCOF","description":"Ventana corrediza tradicional ","systemId":"1eec718c-d77b-42bf-b073-96098b514425","isActive":true,"image":"","pricingMethod":"area","areaUnit":"sqft","areaPriceL1":100,"areaPriceL2":120,"areaPriceL3":130,"areaPriceL4":140,"minimumAreas":[{"bodies":1,"minArea":7},{"bodies":2,"minArea":14},{"bodies":3,"minArea":21}]}

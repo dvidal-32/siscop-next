@@ -348,7 +348,11 @@ export class QuotesService {
 
         // Consultar área mínima configurada para este número de cuerpos desde el mapa en memoria
         const minAreaKey = `${p.template_id}_${bodies}`;
-        const minArea = minAreaMap.has(minAreaKey) ? minAreaMap.get(minAreaKey)! : null;
+        let minArea = minAreaMap.has(minAreaKey) ? minAreaMap.get(minAreaKey)! : null;
+
+        if (pricing_method !== 'area') {
+          minArea = null;
+        }
 
         let areaToBill = engineResult.totalAreaUnit || 0;
         let minAreaApplied = false;

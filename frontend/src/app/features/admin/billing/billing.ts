@@ -55,20 +55,37 @@ export class BillingComponent implements OnInit, AfterViewInit {
 
     try {
       const config = await this.paymentService.getPayPalConfig();
-      const clientId = config.clientId || 'sb';
+      const clientId = (config.clientId || 'sb').trim();
       
-      const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
-      script.id = 'paypal-sdk';
-      script.onload = () => {
-        this.renderPaypalButtons();
-      };
-      script.onerror = () => {
-        console.warn('No se pudo cargar el SDK de PayPal (puede deberse a bloqueadores de publicidad o falta de conexión). Se usará el simulador.');
-      };
-      document.body.appendChild(script);
+      const existingScript = document.getElementById('paypal-sdk');
+      if (existingScript) {
+        // If script exists but paypal is not yet ready, we can wait or retry
+        if (!(window as any).paypal) {
+          setTimeout(() => this.loadPaypalSdk(), 500);
+          return;
+        }
+      } else {
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD`;
+        script.id = 'paypal-sdk';
+        script.onload = () => {
+          this.renderPaypalButtons();
+        };
+        script.onerror = () => {
+          console.warn('No se pudo cargar el SDK de PayPal (puede deberse a bloqueadores de publicidad o falta de conexión). Se usará el simulador.');
+          const container = document.getElementById('paypal-button-container');
+          if (container) {
+            container.innerHTML = '<div class="p-3 text-xs text-rose-500 bg-rose-500/10 rounded-xl border border-rose-500/20">Error al cargar PayPal SDK. Revisa las credenciales o usa el simulador.</div>';
+          }
+        };
+        document.body.appendChild(script);
+      }
     } catch (err) {
       console.error('Error cargando configuración de PayPal:', err);
+      const container = document.getElementById('paypal-button-container');
+      if (container) {
+        container.innerHTML = '<div class="p-3 text-xs text-rose-500 bg-rose-500/10 rounded-xl border border-rose-500/20">Error obteniendo credenciales de PayPal.</div>';
+      }
     }
   }
 
@@ -126,7 +143,12 @@ export class BillingComponent implements OnInit, AfterViewInit {
           message: 'Ocurrió un error con la pasarela de PayPal. Puedes usar el Simulador de Facturación para pruebas.',
         });
       }
-    }).render('#paypal-button-container');
+    }).render('#paypal-button-container').catch((err: any) => {
+      console.error('Failed to render PayPal buttons', err);
+      if (container) {
+        container.innerHTML = '<div class="p-3 text-xs text-rose-500 bg-rose-500/10 rounded-xl border border-rose-500/20">Error renderizando botones de PayPal.</div>';
+      }
+    });
   }
 
   openSimulator() {

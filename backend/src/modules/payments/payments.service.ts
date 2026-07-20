@@ -5,7 +5,7 @@ import { PrismaService } from '../../shared/database/prisma.service';
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(tenantId: string) {
     return this.prisma.payment.findMany({
@@ -71,7 +71,7 @@ export class PaymentsService {
 
     const dbPaypalMode = settings.find(s => s.key === 'PAYPAL_MODE')?.value || 'sandbox';
     const isLive = dbPaypalMode === 'live';
-    
+
     let dbClientId = '';
     let dbClientSecret = '';
 
@@ -114,9 +114,9 @@ export class PaymentsService {
       transactionId: orderId,
     };
 
-    if (clientId && clientSecret) {
+    if (clientId && clientSecret && !orderId.startsWith('PAY-MOCK-')) {
       // ────────────────────────────────────────────────────────────────
-      // REAL PAYPAL API CALL (SANDBOX)
+      // REAL PAYPAL API CALL (SANDBOX/LIVE)
       // ────────────────────────────────────────────────────────────────
       this.logger.log(`Procesando pago PayPal real para orden: ${orderId}`);
       try {
@@ -163,7 +163,7 @@ export class PaymentsService {
         transactionDetails.payerEmail = payer.email_address || transactionDetails.payerEmail;
         transactionDetails.payerName = `${payer.name?.given_name || ''} ${payer.name?.surname || ''}`.trim() || transactionDetails.payerName;
         transactionDetails.status = captureData.status === 'COMPLETED' ? 'completed' : 'failed';
-        
+
         // Obtener ID de la captura real si existe
         const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
         if (captureId) {
@@ -183,10 +183,10 @@ export class PaymentsService {
       }
     } else {
       // ────────────────────────────────────────────────────────────────
-      // MOCK PAYPAL FLOW (DEVELOPMENT FALLBACK)
+      // MOCK PAYPAL FLOW (DEVELOPMENT FALLBACK O SIMULADOR)
       // ────────────────────────────────────────────────────────────────
       this.logger.warn(
-        `PAYPAL_CLIENT_ID o SECRET no configurados en .env. Ejecutando captura simulada (Mock Mode) para la transacción: ${orderId}`,
+        `Ejecutando captura simulada (Mock Mode) para la transacción: ${orderId}. (Credenciales no configuradas o es un pago de prueba)`,
       );
       // Simular latencia de red
       await new Promise((resolve) => setTimeout(resolve, 800));

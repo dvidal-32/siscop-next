@@ -159,11 +159,7 @@ export class MenuService implements OnApplicationBootstrap {
           },
         });
 
-        // Re-order superadmin parent if exists
-        await this.prisma.menuItem.updateMany({
-          where: { code: 'superadmin' },
-          data: { order: 4 },
-        });
+        // Re-order superadmin parent is handled below
       }
 
       // 7. Ensure engineering children
@@ -190,6 +186,14 @@ export class MenuService implements OnApplicationBootstrap {
           });
         }
       }
+      await this.prisma.menuItem.updateMany({
+        where: { code: 'commercial' },
+        data: { order: 4 },
+      });
+      await this.prisma.menuItem.updateMany({
+        where: { code: 'superadmin' },
+        data: { order: 5 },
+      });
 
       return;
     }
@@ -696,7 +700,7 @@ export class MenuService implements OnApplicationBootstrap {
           route: '',
           icon: 'admin_panel_settings',
           required_permission: 'plans.view',
-          order: 3,
+          order: 5,
         },
       });
     }
@@ -863,7 +867,7 @@ export class MenuService implements OnApplicationBootstrap {
           route: '',
           icon: 'request_quote',
           required_permission: 'clients.view',
-          order: 3,
+          order: 4,
         },
       });
 

@@ -145,7 +145,7 @@
     </div>
 
     <!-- Form Footer Actions -->
-    @if (authService.hasPermission('platform_settings.update')) {
+    @if (canSave) {
       <div class="flex items-center justify-end gap-3">
         <button 
           type="submit" 

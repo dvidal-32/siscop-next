@@ -722,16 +722,18 @@
                 </div>
 
                 <!-- Dev Simulator Fallback Trigger -->
-                <div class="pt-2 text-center border-t border-slate-850/60">
-                  <span class="text-[10px] text-slate-500 block mb-2 font-mono uppercase tracking-wider">¿Entorno de Desarrollo?</span>
-                  <button 
-                    (click)="openSimulator()"
-                    [disabled]="isProcessing()"
-                    class="w-full py-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-all active:scale-[0.98] disabled:opacity-50"
-                  >
-                    Simular Pago con PayPal (Mock)
-                  </button>
-                </div>
+                @if (isDevMode) {
+                  <div class="pt-2 text-center border-t border-slate-850/60">
+                    <span class="text-[10px] text-slate-500 block mb-2 font-mono uppercase tracking-wider">¿Entorno de Desarrollo?</span>
+                    <button 
+                      (click)="openSimulator()"
+                      [disabled]="isProcessing()"
+                      class="w-full py-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                      Simular Pago con PayPal (Mock)
+                    </button>
+                  </div>
+                }
               </div>
             }
           </div>

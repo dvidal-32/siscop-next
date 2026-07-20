@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, isDevMode } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TenantService } from '../../../core/services/tenant.service';
@@ -59,6 +59,8 @@ export class CompanyComponent implements OnInit {
   public authService = inject(AuthService);
   private paymentService = inject(PaymentService);
   private router = inject(Router);
+
+  public isDevMode = isDevMode();
 
   get isAdmin(): boolean {
     const user = this.authService.currentUser();

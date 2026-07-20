@@ -79,7 +79,14 @@ export class SimulatorComponent implements OnInit {
       // Valor por defecto
       let defVal = v.default_value || '';
       if (v.type === 'NUMBER') {
-        defVal = defVal ? Number(defVal) : 1000; // Valor de prueba por defecto
+        const nameLower = (v.name || '').toLowerCase();
+        const labelLower = (v.label || '').toLowerCase();
+        
+        if (nameLower.includes('cuerpo') || labelLower.includes('cuerpo') || nameLower === 'n') {
+          defVal = 2;
+        } else {
+          defVal = defVal ? Number(defVal) : 1000; // Valor de prueba por defecto
+        }
       } else if (v.type === 'BOOLEAN') {
         defVal = defVal === 'true';
       }

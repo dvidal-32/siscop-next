@@ -37,7 +37,9 @@ export class QuotesComponent implements OnInit {
   tenantSettings = signal<any[]>([]);
   tenantData = signal<any | null>(null);
 
-  extraVariablesMap = signal<Record<number, any[]>>({});
+  extraVariablesMap = signal<{ [key: number]: any[] }>({});
+  bodiesVarNameMap = signal<{ [key: number]: string }>({});
+  simulatedPrices = signal<{ [key: number]: number | null }>({});
 
   isCreatingVersionFor = signal<string | null>(null);
 
@@ -75,6 +77,8 @@ export class QuotesComponent implements OnInit {
     return this.quoteForm.get('products') as FormArray;
   }
 
+  private simulationTimeout: any;
+
   async ngOnInit() {
     const projectId = this.route.snapshot.queryParamMap.get('projectId');
     if (projectId) {
@@ -110,6 +114,58 @@ export class QuotesComponent implements OnInit {
         }, { emitEvent: false });
       }
     });
+
+    this.quoteForm.valueChanges.subscribe(() => {
+      this.triggerSimulation();
+    });
+  }
+
+  triggerSimulation() {
+    if (this.simulationTimeout) clearTimeout(this.simulationTimeout);
+    this.simulationTimeout = setTimeout(() => this.runSimulations(), 600);
+  }
+
+  async runSimulations() {
+    if (!this.showCreateModal()) return;
+    
+    const margin = Number(this.quoteForm.get('margin')?.value) || 1.0;
+    const raw = this.quoteForm.value;
+    const newPrices = { ...this.simulatedPrices() };
+    
+    for (let i = 0; i < this.productsArray.length; i++) {
+      const p: any = raw.products?.[i];
+      if (!p || !p.template_id) continue;
+      
+      const tmpl = this.templates().find(t => t.id === p.template_id);
+      if (tmpl && tmpl.pricing_method !== 'area') {
+        const vars = { ...(p.variables || {}) };
+        vars['ANCHO'] = Number(p.width);
+        vars['ALTO'] = Number(p.height);
+        vars['W'] = Number(p.width);
+        vars['H'] = Number(p.height);
+        vars['CUERPOS'] = Number(p.bodies || 1);
+        
+        const originalVarName = this.bodiesVarNameMap()[i];
+        if (originalVarName) {
+          vars[originalVarName] = Number(p.bodies || 1);
+        }
+
+        try {
+          // Usar el servicio de ingeniería para simular
+          const tenantId = this.tenantData()?.id;
+          const res = await this.engineeringService.simulate(p.template_id, vars);
+          if (res && res.totalMaterialCost !== undefined) {
+             newPrices[i] = res.totalMaterialCost * margin;
+          } else {
+             newPrices[i] = null;
+          }
+        } catch (e) {
+          newPrices[i] = null;
+        }
+      }
+    }
+    
+    this.simulatedPrices.set(newPrices);
   }
 
   async loadTenantSettings() {
@@ -269,6 +325,7 @@ export class QuotesComponent implements OnInit {
           name: prod.name,
           width: prod.width,
           height: prod.height,
+          bodies: Number(this.getProductBodies(prod)) || 1,
           quantity: prod.quantity,
           notes: prod.notes
         });
@@ -283,7 +340,14 @@ export class QuotesComponent implements OnInit {
               patchObj[key] = prod.engineering_snapshot.inputVariables[key];
             }
           });
-          varsGroup.patchValue(patchObj);
+          varsGroup.patchValue(patchObj, { emitEvent: false });
+        }
+        
+        // Cargar el precio original (unit_price) en los precios simulados para visualización inmediata
+        if (prod.unit_price !== undefined && prod.unit_price !== null) {
+          const currentSimulated = { ...this.simulatedPrices() };
+          currentSimulated[i] = prod.unit_price;
+          this.simulatedPrices.set(currentSimulated);
         }
       }
     }
@@ -318,6 +382,7 @@ export class QuotesComponent implements OnInit {
       name: [initialName, [Validators.required]],
       width: [1000, [Validators.required, Validators.min(1)]],
       height: [1000, [Validators.required, Validators.min(1)]],
+      bodies: [1, [Validators.required, Validators.min(1)]],
       quantity: [1, [Validators.required, Validators.min(1)]],
       notes: [''],
       variables: this.fb.group({}),
@@ -339,6 +404,15 @@ export class QuotesComponent implements OnInit {
       currentMap[newIndex] = initialExtras;
       this.extraVariablesMap.set(currentMap);
     }
+    
+    if (cloneFromIndex !== undefined && cloneFromIndex >= 0 && cloneFromIndex < this.productsArray.length) {
+      const initialBodiesVar = this.bodiesVarNameMap()[cloneFromIndex];
+      if (initialBodiesVar) {
+        const bodiesMap = { ...this.bodiesVarNameMap() };
+        bodiesMap[newIndex] = initialBodiesVar;
+        this.bodiesVarNameMap.set(bodiesMap);
+      }
+    }
   }
 
   removeProduct(index: number) {
@@ -346,6 +420,10 @@ export class QuotesComponent implements OnInit {
     const newMap = { ...this.extraVariablesMap() };
     delete newMap[index];
     this.extraVariablesMap.set(newMap);
+
+    const newBodiesMap = { ...this.bodiesVarNameMap() };
+    delete newBodiesMap[index];
+    this.bodiesVarNameMap.set(newBodiesMap);
   }
 
   getCalculatedArea(index: number): number {
@@ -356,10 +434,28 @@ export class QuotesComponent implements OnInit {
     const templateId = group.get('template_id')?.value;
     const tmpl = this.templates().find(t => t.id === templateId);
     
+    let calculatedArea = 0;
     if (tmpl?.area_unit === 'sqft') {
-      return (w / 304.8) * (h / 304.8);
+      calculatedArea = (w / 304.8) * (h / 304.8);
+    } else {
+      calculatedArea = (w / 1000) * (h / 1000);
     }
-    return (w / 1000) * (h / 1000);
+
+    if (tmpl?.pricing_method === 'area' && tmpl?.minimum_areas && Array.isArray(tmpl.minimum_areas) && tmpl.minimum_areas.length > 0) {
+      const bodies = Number(group.get('bodies')?.value) || 1;
+
+      // El backend hace match exacto por cantidad de cuerpos
+      const matched = tmpl.minimum_areas.find((m: any) => Number(m.bodies) === bodies);
+
+      if (matched && matched.min_area) {
+        const minAreaNum = Number(matched.min_area);
+        if (calculatedArea < minAreaNum) {
+          calculatedArea = minAreaNum;
+        }
+      }
+    }
+
+    return calculatedArea;
   }
 
   getCalculatedPrice(index: number): number | null {
@@ -378,16 +474,31 @@ export class QuotesComponent implements OnInit {
       return Number(price);
     }
     
-    return null; // For cost, we don't know it yet
+    // Si es por costo, retornamos el precio simulado
+    const simulated = this.simulatedPrices()[index];
+    return simulated !== undefined ? simulated : null;
   }
 
   getCalculatedTotal(index: number): number | null {
     const price = this.getCalculatedPrice(index);
     if (price === null) return null;
+    
     const group = this.productsArray.at(index);
-    const qty = group?.get('quantity')?.value || 1;
-    const area = this.getCalculatedArea(index);
-    return price * area * qty;
+    if (!group) return null;
+    
+    const templateId = group.get('template_id')?.value;
+    const tmpl = this.templates().find(t => t.id === templateId);
+    if (!tmpl) return null;
+
+    const qty = group.get('quantity')?.value || 1;
+    
+    if (tmpl.pricing_method === 'area') {
+      const area = this.getCalculatedArea(index);
+      return price * area * qty;
+    }
+    
+    // Si es por costo, el precio (unit_price) ya incluye todo, solo multiplicamos por la cantidad (huecos)
+    return price * qty;
   }
 
   getLiveSubtotal(): number | null {
@@ -440,12 +551,22 @@ export class QuotesComponent implements OnInit {
         const extras: any[] = [];
         if (detail.variables) {
           detail.variables.forEach((v: any) => {
-            if (v.name !== 'W' && v.name !== 'H' && v.name !== 'ANCHO' && v.name !== 'ALTO') {
+            const upperName = v.name.toUpperCase();
+            const upperLabel = (v.label || '').toUpperCase();
+            
+            const isWidthHeight = upperName === 'W' || upperName === 'H' || upperName === 'ANCHO' || upperName === 'ALTO';
+            const isBodies = upperName.includes('CUERPO') || upperName.includes('NAVE') || upperLabel.includes('CUERPO') || upperLabel.includes('NAVE');
+
+            if (!isWidthHeight && !isBodies) {
               extras.push(v);
               varsGroup.addControl(v.name, this.fb.control(
                 v.type === 'BOOLEAN' ? (v.default_value === 'true') : (Number(v.default_value) || 0),
                 v.is_required ? [Validators.required] : []
               ));
+            } else if (isBodies) {
+              const currentBodiesMap = { ...this.bodiesVarNameMap() };
+              currentBodiesMap[index] = v.name;
+              this.bodiesVarNameMap.set(currentBodiesMap);
             }
           });
         }
@@ -472,12 +593,24 @@ export class QuotesComponent implements OnInit {
         discount: Number(raw.discount) || 0,
         include_tax: raw.include_tax,
         payment_conditions: raw.payment_conditions,
-        products: (raw.products || []).map((p: any) => ({
-          ...p,
-          width: Number(p.width),
-          height: Number(p.height),
-          quantity: Number(p.quantity)
-        })),
+        products: (raw.products || []).map((p: any, i: number) => {
+          const vars = { ...(p.variables || {}) };
+          // Siempre enviamos CUERPOS para el motor de ventas minimas
+          vars['CUERPOS'] = Number(p.bodies || 1);
+          // Tambien enviamos la variable original para que el motor de formulas funcione si usa otro nombre
+          const originalVarName = this.bodiesVarNameMap()[i];
+          if (originalVarName) {
+            vars[originalVarName] = Number(p.bodies || 1);
+          }
+          
+          return {
+            ...p,
+            width: Number(p.width),
+            height: Number(p.height),
+            quantity: Number(p.quantity),
+            variables: vars
+          };
+        }),
       };
 
       let savedQuoteId: string | null = null;
@@ -617,5 +750,45 @@ export class QuotesComponent implements OnInit {
 
   getStatusInfo(status: string) {
     return this.STATUS_MAP[status] ?? { label: status, classes: 'bg-slate-100 text-slate-500' };
+  }
+
+  getProductBodies(prod: any): string {
+    if (!prod) return '-';
+    
+    // El backend puede devolver engineering_snapshot como string o como objeto dependiendo del driver
+    let snapshot = prod.engineering_snapshot;
+    if (typeof snapshot === 'string') {
+      try {
+        snapshot = JSON.parse(snapshot);
+      } catch (e) {
+        snapshot = {};
+      }
+    }
+
+    // Prioridad 1: Buscar directamente en inputVariables (lo que el usuario ingresó)
+    if (snapshot && snapshot.inputVariables) {
+      const keys = Object.keys(snapshot.inputVariables);
+      for (const key of keys) {
+        if (key.toUpperCase() === 'CUERPOS' || key.toUpperCase() === 'NAVES') {
+          return String(snapshot.inputVariables[key]);
+        }
+      }
+    }
+
+    // Prioridad 2: El cuerpo procesado por el backend
+    if (snapshot && snapshot.bodies !== undefined && snapshot.bodies !== null) {
+      return String(snapshot.bodies);
+    }
+    
+    // Fallback por si acaso
+    if (prod.variables) {
+      const keys = Object.keys(prod.variables);
+      for (const key of keys) {
+        if (key.toUpperCase() === 'CUERPOS' || key.toUpperCase() === 'NAVES') {
+          return String(prod.variables[key]);
+        }
+      }
+    }
+    return '-';
   }
 }
