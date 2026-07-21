@@ -3,8 +3,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EngineeringService } from '../../../core/services/engineering.service';
 import { CommonModule } from '@angular/common';
+
 import { mmToFractionalInches } from '../../../core/utils/math.utils';
 import { TenantCurrencyPipe } from '../../../core/pipes/tenant-currency.pipe';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-simulator',
@@ -19,6 +21,7 @@ export class SimulatorComponent implements OnInit {
   private engineeringService = inject(EngineeringService);
   private fb = inject(FormBuilder);
   private currencyPipe = inject(TenantCurrencyPipe);
+  private catalogService = inject(CatalogService);
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
@@ -30,6 +33,7 @@ export class SimulatorComponent implements OnInit {
   templateId = signal<string>('');
   template = signal<any | null>(null);
   templates = signal<any[]>([]);
+  finishes = signal<any[]>([]);
 
   // Simulation Form & Results
   variablesForm!: FormGroup;
@@ -48,9 +52,18 @@ export class SimulatorComponent implements OnInit {
       }
       this.templateId.set(id);
       this.isLoading.set(true);
-      await this.loadTemplate();
+      await Promise.all([this.loadTemplate(), this.loadFinishes()]);
       this.isLoading.set(false);
     });
+  }
+
+  async loadFinishes() {
+    try {
+      const finishes = await this.catalogService.getFinishes();
+      this.finishes.set(finishes.filter(f => f.is_active));
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async loadAllTemplates() {

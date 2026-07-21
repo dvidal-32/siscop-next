@@ -8,6 +8,8 @@ import { TenantService } from '../../../core/services/tenant.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { TenantCurrencyPipe } from '../../../core/pipes/tenant-currency.pipe';
 
+import { CatalogService } from '../../../core/services/catalog.service';
+
 @Component({
   selector: 'app-quotes',
   standalone: true,
@@ -20,6 +22,7 @@ export class QuotesComponent implements OnInit {
   private commercialService = inject(CommercialService);
   private engineeringService = inject(EngineeringService);
   private tenantService = inject(TenantService);
+  private catalogService = inject(CatalogService);
   authService = inject(AuthService);
 
   isLoading = signal<boolean>(false);
@@ -30,6 +33,8 @@ export class QuotesComponent implements OnInit {
   quotes = signal<any[]>([]);
   projects = signal<any[]>([]);
   templates = signal<any[]>([]);
+  catalogItems = signal<any[]>([]);
+  finishes = signal<any[]>([]);
 
   filterProjectId = signal<string | null>(null);
   filterProjectName = signal<string | null>(null);
@@ -84,7 +89,7 @@ export class QuotesComponent implements OnInit {
     if (projectId) {
       this.filterProjectId.set(projectId);
     }
-    await Promise.all([this.loadProjects(), this.loadTemplates(), this.loadQuotes()]);
+    await Promise.all([this.loadProjects(), this.loadTemplates(), this.loadQuotes(), this.loadCatalogItems(), this.loadFinishes()]);
 
     if (projectId) {
       const matched = this.projects().find((p) => p.id === projectId);
@@ -120,6 +125,44 @@ export class QuotesComponent implements OnInit {
     });
   }
 
+  async loadCatalogItems() {
+    try {
+      const items = await this.catalogService.getItems();
+      this.catalogItems.set(items);
+    } catch (err) {
+      console.error('Error loading catalog items', err);
+    }
+  }
+
+  async loadFinishes() {
+    try {
+      const data = await this.catalogService.getFinishes();
+      this.finishes.set(data.filter(f => f.is_active));
+    } catch (err) {
+      console.error('Error loading finishes', err);
+    }
+  }
+
+  getParentCatalogItems() {
+    return this.catalogItems().filter((item: any) => !item.base_item_id);
+  }
+
+  hasVariants(index: number): boolean {
+    const group = this.productsArray.at(index);
+    if (!group) return false;
+    const catalogId = group.get('catalog_item_id')?.value;
+    if (!catalogId) return false;
+    const item = this.catalogItems().find((it: any) => it.id === catalogId);
+    return item && item.variants && item.variants.length > 0;
+  }
+
+  getTemplateFinishVarName(index: number): string | null {
+    const rowVars = this.extraVariablesMap()[index];
+    if (!rowVars) return null;
+    const finishVar = rowVars.find((v: any) => v.type === 'FINISH_SELECTOR');
+    return finishVar ? finishVar.name : null;
+  }
+
   triggerSimulation() {
     if (this.simulationTimeout) clearTimeout(this.simulationTimeout);
     this.simulationTimeout = setTimeout(() => this.runSimulations(), 600);
@@ -129,11 +172,31 @@ export class QuotesComponent implements OnInit {
     if (!this.showCreateModal()) return;
     
     const margin = Number(this.quoteForm.get('margin')?.value) || 1.0;
-    const raw = this.quoteForm.value;
+    const raw = this.quoteForm.getRawValue();
     const newPrices = { ...this.simulatedPrices() };
     
     for (let i = 0; i < this.productsArray.length; i++) {
       const p: any = raw.products?.[i];
+      
+      if (p.item_type === 'catalog_item') {
+        let item = this.catalogItems().find(it => it.id === p.catalog_item_id);
+        
+        // --- RESOLUCIÓN DE ACABADO PARA INVENTARIO DIRECTO ---
+        if (item && item.variants && item.variants.length > 0 && p.catalog_finish_id) {
+          const child = item.variants.find((v: any) => v.finish_id === p.catalog_finish_id);
+          if (child) {
+            item = child; // Usar el costo del hijo
+          }
+        }
+
+        if (item) {
+          const cost = Number(item.cost || 0);
+          newPrices[i] = cost * (p.quantity || 1);
+        } else {
+          newPrices[i] = null;
+        }
+        continue;
+      }
       if (!p || !p.template_id) continue;
       
       const tmpl = this.templates().find(t => t.id === p.template_id);
@@ -283,6 +346,10 @@ export class QuotesComponent implements OnInit {
   }
 
   async openCreateVersion(quoteItem: any) {
+    if (!confirm('Estás a punto de crear una nueva versión de esta cotización. Todos los cálculos, costos y reglas de ventas mínimas se actualizarán automáticamente a las políticas actuales del catálogo.\n\n¿Deseas continuar?')) {
+      return;
+    }
+
     this.isCreatingVersionFor.set(quoteItem.id);
 
     let quote;
@@ -320,17 +387,47 @@ export class QuotesComponent implements OnInit {
       for (let i = 0; i < currentVer.products.length; i++) {
         const prod = currentVer.products[i];
         this.addProduct();
+        
+        const itemType = prod.item_type || (prod.catalog_item_id ? 'catalog_item' : 'template');
+        this.productsArray.at(i).get('item_type')?.setValue(itemType);
+
+        let catalogItemId = prod.catalog_item_id;
+        let catalogFinishId = prod.catalog_finish_id;
+        
+        if (itemType === 'catalog_item' && catalogItemId) {
+          const isParent = this.getParentCatalogItems().some((it: any) => it.id === catalogItemId);
+          if (!isParent) {
+            const parent = this.getParentCatalogItems().find((it: any) => it.variants?.some((v: any) => v.id === catalogItemId));
+            if (parent) {
+              const variant = parent.variants.find((v: any) => v.id === catalogItemId);
+              if (variant) {
+                catalogFinishId = variant.finish_id;
+              }
+              catalogItemId = parent.id;
+            }
+          }
+        }
+
         this.productsArray.at(i).patchValue({
           template_id: prod.template_id,
-          name: prod.name,
-          width: prod.width,
-          height: prod.height,
-          bodies: Number(this.getProductBodies(prod)) || 1,
-          quantity: prod.quantity,
-          notes: prod.notes
+          catalog_item_id: catalogItemId,
+          catalog_finish_id: catalogFinishId
         });
 
-        await this.onTemplateSelect(i);
+        if (itemType === 'catalog_item') {
+          this.onCatalogItemSelect(i);
+        } else {
+          await this.onTemplateSelect(i);
+        }
+
+        this.productsArray.at(i).patchValue({
+          name: prod.name,
+          width: Number(prod.width) || 1000,
+          height: Number(prod.height) || 1000,
+          bodies: Number(this.getProductBodies(prod)) || 1,
+          quantity: Number(prod.quantity) || 1,
+          notes: prod.notes
+        });
 
         if (prod.engineering_snapshot?.inputVariables) {
           const varsGroup = this.productsArray.at(i).get('variables') as FormGroup;
@@ -342,17 +439,13 @@ export class QuotesComponent implements OnInit {
           });
           varsGroup.patchValue(patchObj, { emitEvent: false });
         }
-        
-        // Cargar el precio original (unit_price) en los precios simulados para visualización inmediata
-        if (prod.unit_price !== undefined && prod.unit_price !== null) {
-          const currentSimulated = { ...this.simulatedPrices() };
-          currentSimulated[i] = prod.unit_price;
-          this.simulatedPrices.set(currentSimulated);
-        }
       }
     }
 
     this.showCreateModal.set(true);
+    
+    // Forzar la simulación para que se recalcule el precio de costo inmediatamente con las reglas vigentes
+    await this.runSimulations();
   }
 
   closeCreateModal() {
@@ -366,19 +459,30 @@ export class QuotesComponent implements OnInit {
     let initialName = '';
     let initialExtras: any[] | undefined = undefined;
 
+    let initialItemType = 'template';
+    let initialCatalogId = '';
+
     if (cloneFromIndex !== undefined && cloneFromIndex >= 0 && cloneFromIndex < this.productsArray.length) {
       const prevGroup = this.productsArray.at(cloneFromIndex);
+      initialItemType = prevGroup.get('item_type')?.value || 'template';
       initialTemplateId = prevGroup.get('template_id')?.value || '';
+      initialCatalogId = prevGroup.get('catalog_item_id')?.value || '';
       initialExtras = this.extraVariablesMap()[cloneFromIndex];
     }
     
-    if (initialTemplateId) {
+    if (initialItemType === 'template' && initialTemplateId) {
        const tmpl = this.templates().find((t: any) => t.id === initialTemplateId);
        if (tmpl) initialName = tmpl.name;
+    } else if (initialItemType === 'catalog_item' && initialCatalogId) {
+       const item = this.catalogItems().find((it: any) => it.id === initialCatalogId);
+       if (item) initialName = item.name;
     }
 
     const group = this.fb.group({
-      template_id: [initialTemplateId, [Validators.required]],
+      item_type: [initialItemType, [Validators.required]],
+      template_id: [initialTemplateId],
+      catalog_item_id: [initialCatalogId],
+      catalog_finish_id: [''],
       name: [initialName, [Validators.required]],
       width: [1000, [Validators.required, Validators.min(1)]],
       height: [1000, [Validators.required, Validators.min(1)]],
@@ -387,6 +491,70 @@ export class QuotesComponent implements OnInit {
       notes: [''],
       variables: this.fb.group({}),
     });
+    
+    // Configurar habilitación inicial
+    if (initialItemType === 'catalog_item') {
+      group.get('template_id')?.disable({ emitEvent: false });
+      group.get('bodies')?.disable({ emitEvent: false });
+      
+      let enableWidth = false;
+      let enableHeight = false;
+      
+      if (initialCatalogId) {
+        const item = this.catalogItems().find((it: any) => it.id === initialCatalogId);
+        const unit = (item?.unit || '').toLowerCase();
+        if (['m', 'pl'].includes(unit)) {
+          enableWidth = true;
+        } else if (['m2', 'p2'].includes(unit)) {
+          enableWidth = true;
+          enableHeight = true;
+        }
+      }
+      
+      if (!enableWidth) group.get('width')?.disable({ emitEvent: false });
+      if (!enableHeight) group.get('height')?.disable({ emitEvent: false });
+    } else {
+      group.get('catalog_item_id')?.disable({ emitEvent: false });
+      group.get('template_id')?.setValidators([Validators.required]);
+    }
+
+    // Escuchar cambios de item_type
+    group.get('item_type')?.valueChanges.subscribe((type) => {
+      if (type === 'catalog_item') {
+        group.get('template_id')?.disable({ emitEvent: false });
+        group.get('template_id')?.clearValidators();
+        group.get('width')?.disable({ emitEvent: false });
+        group.get('height')?.disable({ emitEvent: false });
+        group.get('bodies')?.disable({ emitEvent: false });
+        
+        group.get('catalog_item_id')?.enable({ emitEvent: false });
+        group.get('catalog_item_id')?.setValidators([Validators.required]);
+        group.patchValue({ name: '', template_id: null, variables: {} });
+        
+        // Limpiar extra variables map
+        const newIndex = this.productsArray.controls.indexOf(group);
+        if (newIndex >= 0) {
+          const currentMap = { ...this.extraVariablesMap() };
+          delete currentMap[newIndex];
+          this.extraVariablesMap.set(currentMap);
+        }
+      } else {
+        group.get('catalog_item_id')?.disable({ emitEvent: false });
+        group.get('catalog_item_id')?.clearValidators();
+        
+        group.get('template_id')?.enable({ emitEvent: false });
+        group.get('template_id')?.setValidators([Validators.required]);
+        group.get('width')?.enable({ emitEvent: false });
+        group.get('height')?.enable({ emitEvent: false });
+        group.get('bodies')?.enable({ emitEvent: false });
+        group.patchValue({ name: '', catalog_item_id: null, catalog_finish_id: null });
+      }
+      group.get('template_id')?.updateValueAndValidity();
+      group.get('catalog_item_id')?.updateValueAndValidity();
+      
+      this.triggerSimulation();
+    });
+
     this.productsArray.push(group);
 
     const newIndex = this.productsArray.length - 1;
@@ -429,8 +597,26 @@ export class QuotesComponent implements OnInit {
   getCalculatedArea(index: number): number {
     const group = this.productsArray.at(index);
     if (!group) return 0;
+    
     const w = group.get('width')?.value || 0;
     const h = group.get('height')?.value || 0;
+
+    if (group.get('item_type')?.value === 'catalog_item') {
+      const catalogId = group.get('catalog_item_id')?.value;
+      const item = this.catalogItems().find(it => it.id === catalogId);
+      if (item) {
+        const unit = (item.unit || '').toLowerCase();
+        if (['m2', 'p2'].includes(unit)) {
+          if (unit === 'p2') return (w / 304.8) * (h / 304.8);
+          return (w / 1000) * (h / 1000);
+        } else if (['m', 'pl'].includes(unit)) {
+          if (unit === 'pl') return (w / 304.8);
+          return (w / 1000);
+        }
+      }
+      return 0;
+    }
+
     const templateId = group.get('template_id')?.value;
     const tmpl = this.templates().find(t => t.id === templateId);
     
@@ -461,6 +647,13 @@ export class QuotesComponent implements OnInit {
   getCalculatedPrice(index: number): number | null {
     const group = this.productsArray.at(index);
     if (!group) return null;
+    
+    if (group.get('item_type')?.value === 'catalog_item') {
+      const catalogId = group.get('catalog_item_id')?.value;
+      const item = this.catalogItems().find(it => it.id === catalogId);
+      return item ? Number(item.cost || 0) : null;
+    }
+
     const templateId = group.get('template_id')?.value;
     const tmpl = this.templates().find(t => t.id === templateId);
     if (!tmpl) return null;
@@ -485,13 +678,25 @@ export class QuotesComponent implements OnInit {
     
     const group = this.productsArray.at(index);
     if (!group) return null;
+    const qty = group.get('quantity')?.value || 1;
+    
+    if (group.get('item_type')?.value === 'catalog_item') {
+      const catalogId = group.get('catalog_item_id')?.value;
+      const item = this.catalogItems().find(it => it.id === catalogId);
+      if (item) {
+        const unit = (item.unit || '').toLowerCase();
+        if (['m2', 'p2', 'm', 'pl'].includes(unit)) {
+          const computedValue = this.getCalculatedArea(index);
+          return price * computedValue * qty;
+        }
+      }
+      return price * qty;
+    }
     
     const templateId = group.get('template_id')?.value;
     const tmpl = this.templates().find(t => t.id === templateId);
     if (!tmpl) return null;
 
-    const qty = group.get('quantity')?.value || 1;
-    
     if (tmpl.pricing_method === 'area') {
       const area = this.getCalculatedArea(index);
       return price * area * qty;
@@ -534,6 +739,28 @@ export class QuotesComponent implements OnInit {
     const tax = this.getLiveTax() || 0;
     const net = sub - this.getLiveDiscount();
     return (net > 0 ? net : 0) + tax;
+  }
+
+  onCatalogItemSelect(index: number) {
+    const catalogId = this.productsArray.at(index).get('catalog_item_id')?.value;
+    const item = this.catalogItems().find(it => it.id === catalogId);
+    if (item) {
+      const group = this.productsArray.at(index);
+      group.get('name')?.setValue(item.name);
+      
+      group.get('width')?.disable();
+      group.get('height')?.disable();
+      
+      const unit = (item.unit || '').toLowerCase();
+      if (['m', 'pl'].includes(unit)) {
+        group.get('width')?.enable();
+      } else if (['m2', 'p2'].includes(unit)) {
+        group.get('width')?.enable();
+        group.get('height')?.enable();
+      }
+      
+      this.triggerSimulation();
+    }
   }
 
   async onTemplateSelect(index: number) {
@@ -586,7 +813,7 @@ export class QuotesComponent implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      const raw = this.quoteForm.value;
+      const raw = this.quoteForm.getRawValue();
       const payload = {
         project_id: raw.project_id,
         margin: Number(raw.margin) || 1.0,
@@ -603,11 +830,54 @@ export class QuotesComponent implements OnInit {
             vars[originalVarName] = Number(p.bodies || 1);
           }
           
+          let finalCatalogItemId = p.catalog_item_id;
+          let finalName = p.name;
+          
+          if (p.item_type === 'catalog_item' && finalCatalogItemId && p.catalog_finish_id) {
+            const item = this.catalogItems().find(it => it.id === finalCatalogItemId);
+            if (item && item.variants && item.variants.length > 0) {
+              const child = item.variants.find((v: any) => v.finish_id === p.catalog_finish_id);
+              if (child) {
+                finalCatalogItemId = child.id;
+                finalName = child.name || p.name;
+              }
+            }
+          } else if (p.item_type === 'template' && p.template_id) {
+            const rowVars = this.extraVariablesMap()[i];
+            if (rowVars) {
+              const finishVar = rowVars.find((v: any) => v.type === 'FINISH_SELECTOR');
+              if (finishVar && vars[finishVar.name]) {
+                const finishObj = this.finishes().find(f => f.id === vars[finishVar.name]);
+                if (finishObj) {
+                  let stripped = true;
+                  while(stripped) {
+                    stripped = false;
+                    this.finishes().forEach(f => {
+                      const suffixParen = `(${f.name})`;
+                      if (finalName.trim().endsWith(suffixParen)) {
+                        finalName = finalName.trim().substring(0, finalName.trim().length - suffixParen.length).trim();
+                        stripped = true;
+                      }
+                      const suffixNaked = f.name;
+                      if (finalName.trim().endsWith(suffixNaked)) {
+                        finalName = finalName.trim().substring(0, finalName.trim().length - suffixNaked.length).trim();
+                        stripped = true;
+                      }
+                    });
+                  }
+                  finalName = `${finalName} ${finishObj.name}`;
+                }
+              }
+            }
+          }
+          
           return {
             ...p,
-            width: Number(p.width),
-            height: Number(p.height),
-            quantity: Number(p.quantity),
+            name: finalName,
+            catalog_item_id: finalCatalogItemId,
+            width: Number(p.width) || 1,
+            height: Number(p.height) || 1,
+            quantity: Number(p.quantity) || 1,
             variables: vars
           };
         }),
@@ -644,10 +914,16 @@ export class QuotesComponent implements OnInit {
   // ──────────────────────────────────────────
   // PRINT QUOTE
   // ──────────────────────────────────────────
-  async printQuote(quoteItem: any) {
+  async printQuote(quoteItem: any, specificVersionId?: string) {
     try {
       this.isLoading.set(true);
       const fullQuote = await this.commercialService.getQuote(quoteItem.id);
+
+      if (specificVersionId && fullQuote.versions) {
+        fullQuote.versions.forEach((v: any) => {
+          v.is_current = (v.id === specificVersionId);
+        });
+      }
 
       // Calculate subtotals for the view if missing
       const currentVer = fullQuote.versions?.find((v: any) => v.is_current) || fullQuote.versions?.[0];

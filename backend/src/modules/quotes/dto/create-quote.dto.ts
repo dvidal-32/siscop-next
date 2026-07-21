@@ -12,19 +12,30 @@ import {
 import { Type } from 'class-transformer';
 
 export class CreateQuotedProductDto {
+  @IsOptional()
   @IsString()
-  template_id: string;
+  item_type?: string;
+
+  @IsOptional()
+  @IsString()
+  template_id?: string;
+
+  @IsOptional()
+  @IsString()
+  catalog_item_id?: string;
 
   @IsString()
   name: string;
 
+  @IsOptional()
   @IsNumber()
   @IsPositive()
-  width: number; // mm
+  width?: number; // mm
 
+  @IsOptional()
   @IsNumber()
   @IsPositive()
-  height: number; // mm
+  height?: number; // mm
 
   @IsInt()
   @Min(1)

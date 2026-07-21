@@ -296,7 +296,8 @@
             <!-- Headers -->
             <div
               class="flex gap-3 px-2 pb-2 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              <div class="w-56 shrink-0">Plantilla *</div>
+              <div class="w-28 shrink-0">Tipo *</div>
+              <div class="w-[22rem] shrink-0">Artículo *</div>
               <div class="w-16 shrink-0 text-center">Cant. *</div>
               <div class="w-20 shrink-0 text-center">Ancho *</div>
               <div class="w-20 shrink-0 text-center">Alto *</div>
@@ -313,14 +314,50 @@
 
                 <!-- Main Row -->
                 <div class="flex flex-nowrap gap-3 items-center p-2">
-                  <!-- Plantilla -->
-                  <div class="w-56 shrink-0">
-                    <select formControlName="template_id" (change)="onTemplateSelect(i)"
+                  <!-- Tipo -->
+                  <div class="w-28 shrink-0">
+                    <select formControlName="item_type"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px]">
-                      <option value="">Seleccionar...</option>
-                      <option *ngFor="let tmpl of templates()" [value]="tmpl.id">{{ tmpl.code }} - {{ tmpl.name }}
-                      </option>
+                      <option value="template">Fabricación</option>
+                      <option value="catalog_item">Inventario</option>
                     </select>
+                  </div>
+
+                  <!-- Artículo -->
+                  <div class="w-[22rem] shrink-0">
+                    <div *ngIf="product.get('item_type')?.value === 'template'" class="flex gap-2 w-full">
+                      <select formControlName="template_id"
+                        (change)="onTemplateSelect(i)"
+                        class="flex-1 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate min-w-0">
+                        <option value="">Seleccionar plantilla...</option>
+                        <option *ngFor="let tmpl of templates()" [value]="tmpl.id">{{ tmpl.code }} - {{ tmpl.name }}</option>
+                      </select>
+
+                      <ng-container *ngIf="getTemplateFinishVarName(i) as finishVarName">
+                        <div formGroupName="variables" class="w-32 shrink-0">
+                          <select [formControlName]="finishVarName"
+                            class="w-full px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
+                            <option value="">Acabado...</option>
+                            <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
+                          </select>
+                        </div>
+                      </ng-container>
+                    </div>
+
+                    <div *ngIf="product.get('item_type')?.value === 'catalog_item'" class="flex gap-2 w-full">
+                      <select formControlName="catalog_item_id"
+                        (change)="onCatalogItemSelect(i)"
+                        class="flex-1 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate min-w-0">
+                        <option value="">Seleccionar artículo...</option>
+                        <option *ngFor="let item of getParentCatalogItems()" [value]="item.id">{{ item.code }} - {{ item.name }}</option>
+                      </select>
+                      
+                      <select *ngIf="hasVariants(i)" formControlName="catalog_finish_id"
+                        class="w-32 shrink-0 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
+                        <option value="">Acabado...</option>
+                        <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
+                      </select>
+                    </div>
                   </div>
 
                   <!-- Cantidad -->
@@ -330,33 +367,38 @@
                   </div>
 
                   <!-- Ancho -->
-                  <div class="w-20 shrink-0">
-                    <input formControlName="width" type="number" min="1" placeholder="Ancho"
+                  <div class="w-20 shrink-0 flex items-center justify-center">
+                    <input *ngIf="!productsArray.at(i).get('width')?.disabled" formControlName="width" type="number" min="1" placeholder="Ancho"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
+                    <span *ngIf="productsArray.at(i).get('width')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Alto -->
-                  <div class="w-20 shrink-0">
-                    <input formControlName="height" type="number" min="1" placeholder="Alto"
+                  <div class="w-20 shrink-0 flex items-center justify-center">
+                    <input *ngIf="!productsArray.at(i).get('height')?.disabled" formControlName="height" type="number" min="1" placeholder="Alto"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
+                    <span *ngIf="productsArray.at(i).get('height')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Cuerpos -->
-                  <div class="w-16 shrink-0">
-                    <input formControlName="bodies" type="number" min="1" placeholder="Cuerpos"
+                  <div class="w-16 shrink-0 flex items-center justify-center">
+                    <input *ngIf="!productsArray.at(i).get('bodies')?.disabled" formControlName="bodies" type="number" min="1" placeholder="Cuerpos"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
+                    <span *ngIf="productsArray.at(i).get('bodies')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Computed: Area -->
                   <div class="w-16 shrink-0 text-center font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                    <ng-container *ngIf="productsArray.at(i).get('template_id')?.value">
-                      {{ getCalculatedArea(i) | number:'1.2-2' }}
+                    <ng-container
+                      *ngIf="productsArray.at(i).get('template_id')?.value || productsArray.at(i).get('catalog_item_id')?.value">
+                      {{ (productsArray.at(i).get('item_type')?.value === 'catalog_item' && getCalculatedArea(i) === 0) ? '-' : (getCalculatedArea(i) | number:'1.2-2') }}
                     </ng-container>
                   </div>
 
                   <!-- Computed: Precio -->
                   <div class="w-24 shrink-0 text-right font-mono text-[11px] text-slate-600 dark:text-slate-300">
-                    <ng-container *ngIf="productsArray.at(i).get('template_id')?.value">
+                    <ng-container
+                      *ngIf="productsArray.at(i).get('template_id')?.value || productsArray.at(i).get('catalog_item_id')?.value">
                       {{ getCalculatedPrice(i) !== null ? (getCalculatedPrice(i) | tenantCurrency) : 'Por costo' }}
                     </ng-container>
                   </div>
@@ -364,7 +406,8 @@
                   <!-- Computed: Total -->
                   <div
                     class="w-24 shrink-0 text-right font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-                    <ng-container *ngIf="productsArray.at(i).get('template_id')?.value">
+                    <ng-container
+                      *ngIf="productsArray.at(i).get('template_id')?.value || productsArray.at(i).get('catalog_item_id')?.value">
                       {{ getCalculatedTotal(i) !== null ? (getCalculatedTotal(i) | tenantCurrency) : '-' }}
                     </ng-container>
                   </div>
@@ -378,20 +421,22 @@
                   </div>
 
                   <!-- Variables Dinámicas (attached to end) -->
-                  <div *ngIf="extraVariablesMap()[i] && extraVariablesMap()[i].length > 0"
-                    formGroupName="variables" class="flex items-center">
+                  <div *ngIf="extraVariablesMap()[i] && extraVariablesMap()[i].length > 0" formGroupName="variables"
+                    class="flex items-center">
                     <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0"></div>
 
-                    <div *ngFor="let extraVar of extraVariablesMap()[i]" class="flex items-center gap-2 shrink-0">
-                      <label class="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap"
-                        [title]="extraVar.name">
-                        {{ extraVar.label }}<span *ngIf="extraVar.is_required" class="text-rose-500">*</span>
-                      </label>
-                      <input *ngIf="extraVar.type === 'NUMBER'" [formControlName]="extraVar.name" type="number"
-                        class="w-16 px-1.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border-transparent hover:border-slate-300 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-indigo-500 transition-all text-[11px] h-[24px]" />
-                      <input *ngIf="extraVar.type === 'BOOLEAN'" [formControlName]="extraVar.name" type="checkbox"
-                        class="w-3.5 h-3.5 rounded accent-indigo-600 border-slate-300" />
-                    </div>
+                    <ng-container *ngFor="let extraVar of extraVariablesMap()[i]">
+                      <div *ngIf="extraVar.type !== 'FINISH_SELECTOR'" class="flex items-center gap-2 shrink-0">
+                        <label class="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap"
+                          [title]="extraVar.name">
+                          {{ extraVar.label }}<span *ngIf="extraVar.is_required" class="text-rose-500">*</span>
+                        </label>
+                        <input *ngIf="extraVar.type === 'NUMBER'" [formControlName]="extraVar.name" type="number"
+                          class="w-16 px-1.5 py-1 rounded bg-slate-100 dark:bg-slate-800 border-transparent hover:border-slate-300 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-indigo-500 transition-all text-[11px] h-[24px]" />
+                        <input *ngIf="extraVar.type === 'BOOLEAN'" [formControlName]="extraVar.name" type="checkbox"
+                          class="w-3.5 h-3.5 rounded accent-indigo-600 border-slate-300" />
+                      </div>
+                    </ng-container>
                   </div>
 
                 </div>
@@ -454,7 +499,7 @@
 
 <!-- Quote Detail Modal -->
 <div *ngIf="showDetailModal() && selectedQuote()"
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-8 overflow-y-auto"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-8 overflow-y-auto print:hidden"
   (click)="closeDetailModal()">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl mb-8"
     (click)="$event.stopPropagation()">
@@ -472,7 +517,7 @@
           selectedQuote().project?.client?.name }}</p>
       </div>
       <div class="flex items-center gap-2">
-        <button (click)="printQuote(selectedQuote())"
+        <button (click)="printQuote(selectedQuote(), selectedVersion()?.id)"
           class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs border-none cursor-pointer flex items-center gap-1.5 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-4 h-4">
@@ -526,8 +571,7 @@
             <thead class="bg-slate-50 dark:bg-slate-800">
               <tr>
                 <th class="text-left px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Código / Producto</th>
-                <th class="text-center px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Cant.</th>
-                <th class="text-center px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Medidas</th>
+                <th class="text-center px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Cant. y Medidas</th>
                 <th class="text-center px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Área</th>
                 <th class="text-right px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Precio U.</th>
                 <th class="text-right px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">Total</th>
@@ -537,24 +581,44 @@
               <tr *ngFor="let product of selectedVersion().products"
                 class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                 <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">
-                  <span class="text-indigo-600 dark:text-indigo-400 font-mono">{{ product.template?.code }}</span> <span
-                    class="text-slate-400 mx-1">-</span> {{ product.name }}
+                  <span class="text-indigo-600 dark:text-indigo-400 font-mono">{{ product.template?.code ||
+                    product.catalog_item?.code }}</span> <span class="text-slate-400 mx-1">-</span> {{ product.name }}
                   <span *ngIf="product.pricing_method === 'area'"
                     class="ml-2 inline-block px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold uppercase tracking-wider border border-indigo-200 dark:border-indigo-500/20"
                     title="Venta por Área (Lista {{ product.applied_price_list || 1 }})">x Área</span>
                 </td>
-                <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{{ product.quantity }}</td>
-                <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{{ product.width }} × {{
-                  product.height }} mm</td>
+                <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400">
+                  <ng-container *ngIf="product.item_type !== 'catalog_item'; else detailQtyOnly">
+                    {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span class="text-[10px]">mm</span>
+                  </ng-container>
+                  <ng-template #detailQtyOnly>
+                    <ng-container *ngIf="['m2', 'p2'].includes(product.catalog_item?.unit || '')">
+                      {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span class="text-[10px]">mm</span>
+                    </ng-container>
+                    <ng-container *ngIf="['m', 'pl'].includes(product.catalog_item?.unit || '')">
+                      {{ product.quantity }} de {{ product.width }} <span class="text-[10px]">mm</span>
+                    </ng-container>
+                    <ng-container *ngIf="!['m2', 'p2', 'm', 'pl'].includes(product.catalog_item?.unit || '')">
+                      {{ product.quantity }}
+                    </ng-container>
+                  </ng-template>
+                </td>
                 <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400 font-medium">
-                  <div class="flex flex-col items-center justify-center">
-                    <span>{{ product.area | number:'1.2-2' }} {{ product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²' }}</span>
-                    <span *ngIf="product.engineering_snapshot?.minAreaApplied"
-                      class="mt-1 inline-block px-1.5 py-0.5 bg-amber-50 dark:bg-amber-550/10 text-amber-600 dark:text-amber-450 text-[8px] font-extrabold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/20 shadow-sm"
-                      [title]="'Físico real: ' + (product.engineering_snapshot?.originalArea | number:'1.2-2') + ' ' + (product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²')">
-                      Mínimo
-                    </span>
-                  </div>
+                  <ng-container *ngIf="product.item_type !== 'catalog_item'; else emptyCell">
+                    <div class="flex flex-col items-center justify-center">
+                      <span>{{ product.area | number:'1.2-2' }} {{ product.engineering_snapshot?.areaUnit === 'sqft' ?
+                        'p²' : 'm²' }}</span>
+                      <span *ngIf="product.engineering_snapshot?.minAreaApplied"
+                        class="mt-1 inline-block px-1.5 py-0.5 bg-amber-50 dark:bg-amber-550/10 text-amber-600 dark:text-amber-450 text-[8px] font-extrabold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/20 shadow-sm"
+                        [title]="'Físico real: ' + (product.engineering_snapshot?.originalArea | number:'1.2-2') + ' ' + (product.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²')">
+                        Mínimo
+                      </span>
+                    </div>
+                  </ng-container>
+                  <ng-template #emptyCell>
+                    <span *ngIf="product.area > 0">{{ product.area | number:'1.2-2' }}</span>
+                    <span *ngIf="product.area === 0 || !product.area">-</span>
+                  </ng-template>
                 </td>
                 <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-400">
                   <div class="flex flex-col items-end">
@@ -562,7 +626,7 @@
                     <span class="text-[9px] text-slate-400 uppercase font-semibold"
                       *ngIf="product.pricing_method === 'area'">Por lista</span>
                     <span class="text-[9px] text-slate-400 uppercase font-semibold"
-                      *ngIf="product.pricing_method !== 'area'">Por costo</span>
+                      *ngIf="product.pricing_method !== 'area' && product.item_type !== 'catalog_item'">Por costo</span>
                   </div>
                 </td>
                 <td class="px-4 py-3 text-right font-semibold text-slate-800 dark:text-white">{{
@@ -618,7 +682,7 @@
     }
 
     #printable-quote {
-      padding: 0 1.5cm !important;
+      padding: 0 0.8cm !important;
 
       width: 100% !important;
       box-sizing: border-box !important;
@@ -730,38 +794,70 @@
               <table class="w-full text-sm text-left" style="border-collapse: separate; border-spacing: 0;">
                 <thead class="text-slate-600 font-medium">
                   <tr>
-                    <th class="py-1.5 px-4 border-2 border-r-0 border-slate-300 rounded-l-2xl w-10 text-center">#</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300">Descripción del Artículo</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300 text-center">Cant.</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300 text-center whitespace-nowrap">Tamaño</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300 text-center whitespace-nowrap">Cuerpos</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300 text-center whitespace-nowrap">Área</th>
-                    <th class="py-1.5 px-4 border-y-2 border-slate-300 text-right whitespace-nowrap">Precio Unit.</th>
-                    <th class="py-1.5 px-4 border-2 border-l-0 border-slate-300 rounded-r-2xl text-right">Total</th>
+                    <th class="py-1.5 px-2 border-2 border-r-0 border-slate-300 rounded-l-2xl w-10 text-center">#</th>
+                    <th class="py-1.5 px-2 border-y-2 border-slate-300 w-full">Descripción del Artículo</th>
+                    <th class="py-1.5 px-2 border-y-2 border-slate-300 text-left whitespace-nowrap">Cant. y Tamaño
+                    </th>
+                    <th class="py-1.5 px-2 border-y-2 border-slate-300 text-center whitespace-nowrap">Cuerpos</th>
+                    <th class="py-1.5 px-2 border-y-2 border-slate-300 text-center whitespace-nowrap">Área</th>
+                    <th class="py-1.5 px-2 border-y-2 border-slate-300 text-right whitespace-nowrap">Precio Unit.</th>
+                    <th
+                      class="py-1.5 px-2 border-2 border-l-0 border-slate-300 rounded-r-2xl text-right whitespace-nowrap">
+                      Total</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                   <ng-container *ngFor="let ver of pQuote.versions">
                     <ng-container *ngIf="ver.is_current">
                       <tr *ngFor="let prod of ver.products; let idx = index">
-                        <td class="py-1 px-4 text-center text-slate-400">{{ idx + 1 }}</td>
-                        <td class="py-1 px-4 font-medium text-slate-800">
-                          {{ prod.name || 'Producto sin nombre' }}
-                          <div class="text-xs text-slate-500 font-normal mt-0.5" *ngIf="prod.notes">{{ prod.notes }}
-                          </div>
+                        <td class="py-1 px-2 text-center text-slate-400">{{ idx + 1 }}</td>
+                        <td class="py-1 px-2 font-medium text-slate-800">
+                          <ng-container
+                            *ngIf="idx === 0 || ver.products[idx - 1].name !== prod.name || ver.products[idx - 1].notes !== prod.notes">
+                            <span class="whitespace-nowrap">{{ prod.name || 'Producto sin nombre' }}</span>
+                            <div class="text-xs text-slate-500 font-normal mt-0.5" *ngIf="prod.notes">{{ prod.notes }}
+                            </div>
+                          </ng-container>
                         </td>
-                        <td class="py-1 px-4 text-center">{{ prod.quantity }}</td>
-                        <td class="py-1 px-4 text-center text-slate-600 whitespace-nowrap">{{ prod.width }} × {{
-                          prod.height }} <span class="text-[10px]">mm</span></td>
-                        <td class="py-1 px-4 text-center text-slate-600 whitespace-nowrap">{{ getProductBodies(prod) }}</td>
-                        <td class="py-1 px-4 text-center text-slate-600 whitespace-nowrap">
-                          {{ prod.area | number:'1.2-2' }} {{ prod.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' : 'm²' }}
-                          <span *ngIf="prod.engineering_snapshot?.minAreaApplied" class="text-[9px] font-bold text-amber-600 ml-0.5" title="Área Mínima Aplicada">*</span>
+                        <td class="py-1 px-2 text-left text-slate-600 whitespace-nowrap">
+                          <ng-container *ngIf="prod.item_type !== 'catalog_item'; else printQtyOnly">
+                            {{ prod.quantity }} de {{ prod.width }} × {{ prod.height }} <span
+                              class="text-[10px]">mm</span>
+                          </ng-container>
+                          <ng-template #printQtyOnly>
+                            <ng-container *ngIf="['m2', 'p2'].includes(prod.catalog_item?.unit || '')">
+                              {{ prod.quantity }} de {{ prod.width }} × {{ prod.height }} <span class="text-[10px]">mm</span>
+                            </ng-container>
+                            <ng-container *ngIf="['m', 'pl'].includes(prod.catalog_item?.unit || '')">
+                              {{ prod.quantity }} de {{ prod.width }} <span class="text-[10px]">mm</span>
+                            </ng-container>
+                            <ng-container *ngIf="!['m2', 'p2', 'm', 'pl'].includes(prod.catalog_item?.unit || '')">
+                              {{ prod.quantity }}
+                            </ng-container>
+                          </ng-template>
                         </td>
-                        <td class="py-1 px-4 text-right text-slate-600">
+                        <td class="py-1 px-2 text-center text-slate-600 whitespace-nowrap">
+                          <ng-container *ngIf="prod.item_type !== 'catalog_item'; else emptyTd">
+                            {{ getProductBodies(prod) }}
+                          </ng-container>
+                          <ng-template #emptyTd>-</ng-template>
+                        </td>
+                        <td class="py-1 px-2 text-center text-slate-600 whitespace-nowrap">
+                          <ng-container *ngIf="prod.item_type !== 'catalog_item'; else emptyAreaTd">
+                            {{ prod.area | number:'1.2-2' }} {{ prod.engineering_snapshot?.areaUnit === 'sqft' ? 'p²' :
+                            'm²' }}
+                            <span *ngIf="prod.engineering_snapshot?.minAreaApplied"
+                              class="text-[9px] font-bold text-amber-600 ml-0.5" title="Área Mínima Aplicada">*</span>
+                          </ng-container>
+                          <ng-template #emptyAreaTd>
+                            <span *ngIf="prod.area > 0">{{ prod.area | number:'1.2-2' }}</span>
+                            <span *ngIf="prod.area === 0 || !prod.area">-</span>
+                          </ng-template>
+                        </td>
+                        <td class="py-1 px-2 text-right text-slate-600">
                           <div>{{ prod.unit_price | number:'1.2-2' }}</div>
                         </td>
-                        <td class="py-1 px-4 text-right font-semibold text-slate-900">{{ prod.total_price |
+                        <td class="py-1 px-2 text-right font-semibold text-slate-900">{{ prod.total_price |
                           number:'1.2-2' }}
                         </td>
                       </tr>

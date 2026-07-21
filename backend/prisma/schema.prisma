@@ -350,6 +350,8 @@ model CatalogFinish {
   is_active        Boolean  @default(true)
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
+  
+  catalog_items    CatalogItem[]
 
   @@unique([tenant_id, name])
   @@index([tenant_id])
@@ -374,6 +376,13 @@ model CatalogItem {
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
 
+  // Jerarquía Padre/Hijo para Acabados
+  base_item_id     String?
+  base_item        CatalogItem?   @relation("ItemVariants", fields: [base_item_id], references: [id])
+  variants         CatalogItem[]  @relation("ItemVariants")
+  finish_id        String?
+  finish           CatalogFinish? @relation(fields: [finish_id], references: [id])
+
   // Campos específicos de Perfiles
   weight_per_meter Decimal?       @db.Decimal(6, 3)
   standard_length  Decimal?       @db.Decimal(5, 2)
@@ -387,6 +396,9 @@ model CatalogItem {
 
   // Relación inversa con Ingeniería
   engineering_components EngineeringComponent[]
+  
+  // Relación inversa con Cotizaciones
+  quoted_products QuotedProduct[]
 
   @@unique([tenant_id, code])
   @@index([tenant_id])
@@ -416,6 +428,7 @@ enum VariableType {
   STRING
   BOOLEAN
   LIST
+  FINISH_SELECTOR
 }
 
 enum ComponentType {
@@ -701,20 +714,26 @@ model QuotedProduct {
   id                   String              @id @default(uuid())
   quote_version_id     String
   quote_version        QuoteVersion        @relation(fields: [quote_version_id], references: [id], onDelete: Cascade)
-  template_id          String
-  template             EngineeringTemplate @relation(fields: [template_id], references: [id])
+  item_type            String              @default("template") // "template" | "catalog_item"
+  
+  template_id          String?
+  template             EngineeringTemplate? @relation(fields: [template_id], references: [id])
+  
+  catalog_item_id      String?
+  catalog_item         CatalogItem?         @relation(fields: [catalog_item_id], references: [id])
+  
   name                 String
-  width                Decimal             @db.Decimal(10, 2)  // mm
-  height               Decimal             @db.Decimal(10, 2)  // mm
+  width                Decimal?            @db.Decimal(10, 2)  // mm (opcional para item directo)
+  height               Decimal?            @db.Decimal(10, 2)  // mm (opcional)
   area                 Decimal             @default(0.0) @db.Decimal(10, 2) // m2 o sqft
   quantity             Int                 @default(1)
   unit_cost            Decimal             @default(0.0) @db.Decimal(12, 2) // Costo calculado
-  unit_price           Decimal             @default(0.0) @db.Decimal(12, 2) // Costo + margen
+  unit_price           Decimal             @default(0.0) @db.Decimal(12, 2) // Costo + margen (o precio directo)
   total_price          Decimal             @default(0.0) @db.Decimal(12, 2)
-  pricing_method       String              @default("cost") // "cost" | "area"
+  pricing_method       String              @default("cost") // "cost" | "area" | "item"
   applied_price_list   Int?                // 1, 2, 3, 4
   // Snapshot completo del resultado del motor al momento de cotizar
-  engineering_snapshot Json
+  engineering_snapshot Json?
   notes                String?
   created_at           DateTime            @default(now())
   updated_at           DateTime            @updatedAt

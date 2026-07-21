@@ -47,7 +47,10 @@ export class QuotesService {
           orderBy: { version_number: 'desc' },
           include: {
             products: {
-              include: { template: { select: { id: true, name: true, code: true } } },
+              include: { 
+                template: { select: { id: true, name: true, code: true } },
+                catalog_item: { select: { id: true, name: true, code: true, unit: true } }
+              },
             },
           },
         },
@@ -304,7 +307,7 @@ export class QuotesService {
     const appliedMargin = margin ?? 1.0; // Sin margen por defecto
 
     // Pre-cargar áreas mínimas para evitar N+1 query problem
-    const uniqueTemplateIds = [...new Set(products.map((p) => p.template_id))];
+    const uniqueTemplateIds = [...new Set(products.map((p) => p.template_id))].filter((id): id is string => Boolean(id));
     const minimumAreas = await this.prisma.templateMinimumArea.findMany({
       where: { template_id: { in: uniqueTemplateIds } },
     });
@@ -315,19 +318,61 @@ export class QuotesService {
       minAreaMap.set(`${ma.template_id}_${ma.bodies}`, Number(ma.min_area));
     }
 
+    const catalogItemIds = [...new Set(products.filter(p => p.item_type === 'catalog_item' && p.catalog_item_id).map((p) => p.catalog_item_id))] as string[];
+    const catalogItems = catalogItemIds.length > 0 ? await this.prisma.catalogItem.findMany({
+      where: { id: { in: catalogItemIds } },
+    }) : [];
+    const catalogItemMap = new Map(catalogItems.map(item => [item.id, item]));
+
     const calculated = await Promise.all(
       products.map(async (p) => {
+        if (p.item_type === 'catalog_item' && p.catalog_item_id) {
+          const item = catalogItemMap.get(p.catalog_item_id);
+          const unitCost = Number(item?.cost || 0);
+          const unitPrice = unitCost; // Precio directo de inventario
+          
+          let computedFactor = 1;
+          const unit = (item?.unit || '').toLowerCase();
+          
+          if (['m2', 'p2'].includes(unit)) {
+            if (unit === 'p2') computedFactor = ((p.width || 0) / 304.8) * ((p.height || 0) / 304.8);
+            else computedFactor = ((p.width || 0) / 1000) * ((p.height || 0) / 1000);
+          } else if (['m', 'pl'].includes(unit)) {
+            if (unit === 'pl') computedFactor = ((p.width || 0) / 304.8);
+            else computedFactor = ((p.width || 0) / 1000);
+          }
+
+          const totalPrice = unitPrice * computedFactor * p.quantity;
+          
+          return {
+            item_type: p.item_type,
+            catalog_item_id: p.catalog_item_id,
+            name: p.name || item?.name || 'Artículo',
+            width: p.width,
+            height: p.height,
+            area: computedFactor !== 1 ? computedFactor : 0,
+            quantity: p.quantity,
+            unit_cost: unitCost,
+            unit_price: unitPrice,
+            total_price: totalPrice,
+            pricing_method: 'item',
+            applied_price_list: null,
+            engineering_snapshot: undefined,
+            notes: p.notes,
+          };
+        }
+
         const inputVariables: Record<string, number> = {
           ...(p.variables || {}),
-          ANCHO: p.width,
-          ALTO: p.height,
-          W: p.width,
-          H: p.height,
+          ANCHO: p.width || 0,
+          ALTO: p.height || 0,
+          W: p.width || 0,
+          H: p.height || 0,
         };
 
         // Llamar al motor de ingeniería para obtener el desglose de costos
         const engineResult = await this.engineService.simulate(
-          p.template_id,
+          p.template_id!,
           inputVariables,
           tenantId,
         );
@@ -393,6 +438,7 @@ export class QuotesService {
         };
 
         return {
+          item_type: 'template',
           template_id: p.template_id,
           name: p.name,
           width: p.width,

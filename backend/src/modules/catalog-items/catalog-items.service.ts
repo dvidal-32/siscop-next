@@ -15,6 +15,9 @@ export class CatalogItemsService {
       },
       include: {
         system: true,
+        variants: { include: { finish: true } },
+        base_item: true,
+        finish: true,
       },
       orderBy: { code: 'asc' },
     });
@@ -25,6 +28,9 @@ export class CatalogItemsService {
       where: { id, tenant_id: tenantId },
       include: {
         system: true,
+        variants: { include: { finish: true } },
+        base_item: true,
+        finish: true,
       },
     });
     if (!item) {
@@ -71,9 +77,14 @@ export class CatalogItemsService {
         thickness_mm: dto.type === 'glass' ? dto.thicknessMm : null,
         glass_type: dto.type === 'glass' ? dto.glassType : null,
         weight_per_m2: dto.type === 'glass' ? dto.weightPerM2 : null,
+        base_item_id: dto.baseItemId || null,
+        finish_id: dto.finishId || null,
       },
       include: {
         system: true,
+        variants: { include: { finish: true } },
+        base_item: true,
+        finish: true,
       },
     });
   }
@@ -129,9 +140,14 @@ export class CatalogItemsService {
         thickness_mm: type === 'glass' ? (dto.thicknessMm !== undefined ? dto.thicknessMm : item.thickness_mm) : null,
         glass_type: type === 'glass' ? (dto.glassType !== undefined ? dto.glassType : item.glass_type) : null,
         weight_per_m2: type === 'glass' ? (dto.weightPerM2 !== undefined ? dto.weightPerM2 : item.weight_per_m2) : null,
+        base_item_id: dto.baseItemId !== undefined ? (dto.baseItemId || null) : item.base_item_id,
+        finish_id: dto.finishId !== undefined ? (dto.finishId || null) : item.finish_id,
       },
       include: {
         system: true,
+        variants: { include: { finish: true } },
+        base_item: true,
+        finish: true,
       },
     });
   }

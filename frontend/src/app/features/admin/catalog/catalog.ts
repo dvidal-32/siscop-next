@@ -23,10 +23,12 @@ export class CatalogItemsComponent implements OnInit {
   // Data Lists
   items = signal<any[]>([]);
   systems = signal<any[]>([]); // To populate lines/systems dropdown for profiles
+  finishes = signal<any[]>([]); // To populate finishes for variants
   selectedSystemFilter = signal<string>('all');
 
   // Modal State
   showModal = signal<boolean>(false);
+  showVariantsModal = signal<boolean>(false);
   selectedItem = signal<any | null>(null);
 
   itemForm = this.fb.group({
@@ -52,8 +54,17 @@ export class CatalogItemsComponent implements OnInit {
 
   async ngOnInit() {
     this.isLoading.set(true);
-    await Promise.all([this.loadItems(), this.loadSystems()]);
+    await Promise.all([this.loadItems(), this.loadSystems(), this.loadFinishes()]);
     this.isLoading.set(false);
+  }
+
+  async loadFinishes() {
+    try {
+      const data = await this.catalogService.getFinishes();
+      this.finishes.set(data.filter(f => f.is_active));
+    } catch (err) {
+      console.error('Error cargando acabados', err);
+    }
   }
 
   async loadItems() {
@@ -136,7 +147,82 @@ export class CatalogItemsComponent implements OnInit {
 
   closeModal() {
     this.showModal.set(false);
+    this.showVariantsModal.set(false);
     this.selectedItem.set(null);
+  }
+
+  openVariants(item: any) {
+    this.selectedItem.set(item);
+    this.showVariantsModal.set(true);
+  }
+
+  getCheckedFinishes(): string[] {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked') as NodeListOf<HTMLInputElement>;
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  async generateVariants(selectedFinishIds: string[]) {
+    if (!this.selectedItem() || selectedFinishIds.length === 0) return;
+    
+    this.isLoading.set(true);
+    const baseItem = this.selectedItem();
+    let createdCount = 0;
+    const generatedCodes = new Set<string>();
+
+    for (const finishId of selectedFinishIds) {
+      const finish = this.finishes().find(f => f.id === finishId);
+      if (!finish) continue;
+
+      // Evitar crear si ya existe
+      const exists = baseItem.variants?.find((v: any) => v.finish_id === finish.id);
+      if (exists) continue;
+
+      let baseSuffix = finish.code ? finish.code.trim().toUpperCase() : finish.name.trim().substring(0, 3).toUpperCase();
+      let baseNewCode = `${baseItem.code}-${baseSuffix}`;
+      
+      let finalCode = baseNewCode;
+      let counter = 1;
+      while (
+        this.items().some(item => item.code.toLowerCase() === finalCode.toLowerCase()) ||
+        generatedCodes.has(finalCode.toLowerCase())
+      ) {
+        finalCode = `${baseNewCode}${counter}`;
+        counter++;
+      }
+      
+      generatedCodes.add(finalCode.toLowerCase());
+
+      const dto = {
+        code: finalCode,
+        name: `${baseItem.name} (${finish.name})`,
+        description: baseItem.description,
+        type: baseItem.type,
+        unit: baseItem.unit,
+        cost: Number(baseItem.cost) * Number(finish.price_multiplier),
+        isActive: true,
+        image: baseItem.image,
+        weightPerMeter: baseItem.weight_per_meter ? Number(baseItem.weight_per_meter) : undefined,
+        standardLength: baseItem.standard_length ? Number(baseItem.standard_length) : undefined,
+        systemId: baseItem.system_id || undefined,
+        thicknessMm: baseItem.thickness_mm ? Number(baseItem.thickness_mm) : undefined,
+        glassType: baseItem.glass_type || undefined,
+        weightPerM2: baseItem.weight_per_m2 ? Number(baseItem.weight_per_m2) : undefined,
+        baseItemId: baseItem.id,
+        finishId: finish.id
+      };
+
+      try {
+        await this.catalogService.createItem(dto);
+        createdCount++;
+      } catch (e) {
+        console.error('Error creando variante', e);
+      }
+    }
+
+    this.successMessage.set(`Se crearon ${createdCount} variaciones con éxito.`);
+    await this.loadItems();
+    this.closeModal();
+    this.isLoading.set(false);
   }
 
   onImageChange(event: Event) {

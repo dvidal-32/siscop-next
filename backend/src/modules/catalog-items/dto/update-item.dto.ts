@@ -35,6 +35,14 @@ export class UpdateItemDto {
   @IsOptional()
   image?: string;
 
+  @IsString()
+  @IsOptional()
+  baseItemId?: string;
+
+  @IsString()
+  @IsOptional()
+  finishId?: string;
+
   // Campos específicos de perfiles
   @IsNumber({}, { message: 'El peso por metro debe ser un número' })
   @Min(0, { message: 'El peso por metro no puede ser menor que 0' })

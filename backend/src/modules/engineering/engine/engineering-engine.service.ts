@@ -44,7 +44,9 @@ export class EngineeringEngineService {
         components: {
           orderBy: { order: 'asc' },
           include: {
-            catalog_item: true,
+            catalog_item: {
+              include: { variants: true }
+            },
             formula: true,
             rules: { orderBy: { priority: 'asc' } },
           },
@@ -58,6 +60,7 @@ export class EngineeringEngineService {
 
     // 2. Validar que todas las variables requeridas tengan valor
     const numericVariables: Record<string, number> = {};
+    const stringVariables: Record<string, string> = {};
 
     for (const variable of template.variables) {
       const value = inputVariables[variable.name];
@@ -99,6 +102,9 @@ export class EngineeringEngineService {
           : (variable.default_value === 'true');
         numericVariables[variable.name] = boolValue ? 1 : 0;
         logs.push(`Variable ${variable.name} = ${boolValue ? 1 : 0} (BOOLEAN)`);
+      } else if (variable.type === 'STRING' || variable.type === 'LIST' || variable.type === 'FINISH_SELECTOR') {
+        stringVariables[variable.name] = value ? String(value) : (variable.default_value || '');
+        logs.push(`Variable ${variable.name} = ${stringVariables[variable.name]} (TEXT/FINISH)`);
       }
     }
 
@@ -201,8 +207,27 @@ export class EngineeringEngineService {
       // 3c. Calcular costo de material (si el componente tiene artículo de catálogo enlazado)
       let materialCost = 0;
       if (included && component.catalog_item) {
-        const unitCost = Number(component.catalog_item.cost);
-        const rawUnit = component.catalog_item.unit.toLowerCase().trim();
+        let activeCatalogItem = component.catalog_item;
+        
+        // --- RESOLUCIÓN DE ACABADO (PADRE/HIJO) ---
+        // Si el artículo tiene hijos (es un padre), intentar buscar el hijo correspondiente al acabado seleccionado
+        if (activeCatalogItem.variants && activeCatalogItem.variants.length > 0) {
+          // Buscar alguna variable de tipo FINISH_SELECTOR que tenga un valor válido
+          const finishId = Object.values(stringVariables).find(val => val && val !== '');
+          
+          if (finishId) {
+            const matchedChild = activeCatalogItem.variants.find((v: any) => v.finish_id === finishId);
+            if (matchedChild) {
+              activeCatalogItem = matchedChild as any;
+              logs.push(`  Variante seleccionada por acabado: ${activeCatalogItem.code} ($${activeCatalogItem.cost})`);
+            } else {
+              logs.push(`  Advertencia: No se encontró variante para el acabado especificado. Usando artículo padre.`);
+            }
+          }
+        }
+
+        const unitCost = Number(activeCatalogItem.cost);
+        const rawUnit = activeCatalogItem.unit.toLowerCase().trim();
 
         // Determinar la dimensión lineal principal (Largo, y si está vacío, usar Ancho o Alto)
         const linearDimension = formulaResult.length ?? formulaResult.width ?? formulaResult.height;
