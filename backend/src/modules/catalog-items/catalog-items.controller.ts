@@ -31,6 +31,16 @@ export class CatalogItemsController {
     return this.catalogItemsService.create(dto, tenantId);
   }
 
+  @Patch('bulk-prices')
+  @RequirePermissions('settings.update')
+  @AuditAction('catalog-items', 'bulk_update_prices', 'catalog_item')
+  bulkUpdatePrices(
+    @Body() body: { items: { id: string; cost: number; price_1?: number; price_2?: number; price_3?: number; price_4?: number }[] },
+    @CurrentTenant() tenantId: string | null,
+  ) {
+    return this.catalogItemsService.bulkUpdatePrices(body.items, tenantId);
+  }
+
   @Patch(':id')
   @RequirePermissions('settings.update')
   @AuditAction('catalog-items', 'update', 'catalog_item')

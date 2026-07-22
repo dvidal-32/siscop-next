@@ -30,6 +30,12 @@ export class EngineeringService {
     return firstValueFrom(this.http.delete<any>(`${this.baseUrl}/engineering/templates/${id}`));
   }
 
+  async bulkUpdateTemplatePrices(items: any[]): Promise<any> {
+    return firstValueFrom(
+      this.http.patch<any>(`${this.baseUrl}/engineering/templates-bulk-prices`, { items })
+    );
+  }
+
   // Variables
   async createVariable(data: any): Promise<any> {
     return firstValueFrom(this.http.post<any>(`${this.baseUrl}/engineering/variables`, data));

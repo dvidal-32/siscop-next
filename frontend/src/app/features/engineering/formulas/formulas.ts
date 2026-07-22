@@ -45,12 +45,14 @@ export class FormulasComponent implements OnInit {
     minValue: [null as number | null],
     maxValue: [null as number | null],
     order: [0],
+    itemCategory: [''], // Para ITEM_SELECTOR
   });
 
   componentForm = this.fb.group({
     name: ['', [Validators.required]],
     type: ['PROFILE', [Validators.required]],
     catalogItemId: [''],
+    dynamicItemVariable: [''],
     order: [0],
   });
 
@@ -158,6 +160,7 @@ export class FormulasComponent implements OnInit {
         minValue: formVal.minValue || undefined,
         maxValue: formVal.maxValue || undefined,
         order: formVal.order || 0,
+        listOptions: formVal.type === 'ITEM_SELECTOR' && formVal.itemCategory ? { category: formVal.itemCategory } : undefined,
       };
 
       if (this.selectedVariable()) {
@@ -178,6 +181,7 @@ export class FormulasComponent implements OnInit {
         minValue: null,
         maxValue: null,
         order: 0,
+        itemCategory: '',
       });
       await this.loadTemplate();
       setTimeout(() => this.successMessage.set(null), 3000);
@@ -199,7 +203,9 @@ export class FormulasComponent implements OnInit {
       minValue: variable.min_value !== null ? Number(variable.min_value) : null,
       maxValue: variable.max_value !== null ? Number(variable.max_value) : null,
       order: variable.order || 0,
+      itemCategory: variable.type === 'ITEM_SELECTOR' && variable.list_options?.category ? variable.list_options.category : '',
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelEditVariable() {
@@ -282,6 +288,7 @@ export class FormulasComponent implements OnInit {
         name: formVal.name,
         type: formVal.type as any,
         catalogItemId: formVal.catalogItemId || undefined,
+        dynamicItemVariable: formVal.dynamicItemVariable || undefined,
         order: formVal.order || 0,
       };
 
@@ -298,6 +305,7 @@ export class FormulasComponent implements OnInit {
         name: '',
         type: 'PROFILE',
         catalogItemId: '',
+        dynamicItemVariable: '',
         order: 0,
       });
       await this.loadTemplate();
@@ -315,6 +323,7 @@ export class FormulasComponent implements OnInit {
       name: comp.name,
       type: comp.type,
       catalogItemId: comp.catalog_item_id || '',
+      dynamicItemVariable: comp.dynamic_item_variable || '',
       order: comp.order || 0,
     });
   }
@@ -325,6 +334,7 @@ export class FormulasComponent implements OnInit {
       name: '',
       type: 'PROFILE',
       catalogItemId: '',
+      dynamicItemVariable: '',
       order: 0,
     });
   }

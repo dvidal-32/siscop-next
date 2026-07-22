@@ -875,12 +875,30 @@ export class MenuService implements OnApplicationBootstrap {
         data: [
           {
             parent_id: commercialParent.id,
+            code: 'commercial.price-list',
+            label: 'Lista de Precios de Materiales',
+            route: '/commercial/price-list',
+            icon: 'payments',
+            required_permission: 'settings.view',
+            order: 0,
+          },
+          {
+            parent_id: commercialParent.id,
+            code: 'commercial.template-pricing',
+            label: 'Precios de Fabricación',
+            route: '/commercial/template-pricing',
+            icon: 'request_quote',
+            required_permission: 'settings.view',
+            order: 1,
+          },
+          {
+            parent_id: commercialParent.id,
             code: 'commercial.clients',
             label: 'Clientes',
             route: '/commercial/clients',
             icon: 'people',
             required_permission: 'clients.view',
-            order: 0,
+            order: 1,
           },
           {
             parent_id: commercialParent.id,
@@ -889,7 +907,7 @@ export class MenuService implements OnApplicationBootstrap {
             route: '/commercial/projects',
             icon: 'business_center',
             required_permission: 'projects.view',
-            order: 1,
+            order: 2,
           },
           {
             parent_id: commercialParent.id,
@@ -898,10 +916,54 @@ export class MenuService implements OnApplicationBootstrap {
             route: '/commercial/quotes',
             icon: 'description',
             required_permission: 'quotes.view',
-            order: 2,
+            order: 3,
           },
         ],
       });
+    } else {
+      // Ensure price-list exists if parent already existed
+      const priceList = await this.prisma.menuItem.findUnique({
+        where: { code: 'commercial.price-list' },
+      });
+      if (!priceList) {
+        await this.prisma.menuItem.create({
+          data: {
+            parent_id: commercialParent.id,
+            code: 'commercial.price-list',
+            label: 'Lista de Precios de Materiales',
+            route: '/commercial/price-list',
+            icon: 'payments',
+            required_permission: 'settings.view',
+            order: 0,
+          },
+        });
+      } else {
+        await this.prisma.menuItem.update({
+          where: { id: priceList.id },
+          data: { label: 'Lista de Precios de Materiales' },
+        });
+      }
+
+      const templatePricing = await this.prisma.menuItem.findUnique({
+        where: { code: 'commercial.template-pricing' },
+      });
+      if (!templatePricing) {
+        await this.prisma.menuItem.create({
+          data: {
+            parent_id: commercialParent.id,
+            code: 'commercial.template-pricing',
+            label: 'Precios de Fabricación',
+            route: '/commercial/template-pricing',
+            icon: 'request_quote',
+            required_permission: 'settings.view',
+            order: 1,
+          },
+        });
+        await this.prisma.menuItem.updateMany({
+          where: { parent_id: commercialParent.id, code: { notIn: ['commercial.price-list', 'commercial.template-pricing'] } },
+          data: { order: { increment: 1 } },
+        });
+      }
     }
   }
 }

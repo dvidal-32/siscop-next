@@ -10,7 +10,7 @@ export class UpdateVariableDto {
   @IsOptional()
   label?: string;
 
-  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN o LIST' })
+  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN, LIST, FINISH_SELECTOR o ITEM_SELECTOR' })
   @IsOptional()
   type?: VariableType;
 

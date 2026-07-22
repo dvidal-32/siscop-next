@@ -173,6 +173,27 @@ export class EngineeringService {
     });
   }
 
+  async bulkUpdatePrices(items: any[], tenantId: string) {
+    // Usamos una transacción para actualizar todas las plantillas
+    const updatePromises = items.map((item) => {
+      // Filtrar campos a actualizar
+      const data: any = {};
+      if (item.pricing_method !== undefined) data.pricing_method = item.pricing_method;
+      if (item.area_price_l1 !== undefined) data.area_price_l1 = item.area_price_l1;
+      if (item.area_price_l2 !== undefined) data.area_price_l2 = item.area_price_l2;
+      if (item.area_price_l3 !== undefined) data.area_price_l3 = item.area_price_l3;
+      if (item.area_price_l4 !== undefined) data.area_price_l4 = item.area_price_l4;
+
+      return this.prisma.engineeringTemplate.updateMany({
+        where: { id: item.id, tenant_id: tenantId },
+        data,
+      });
+    });
+
+    await this.prisma.$transaction(updatePromises);
+    return { success: true, updated: items.length };
+  }
+
 
   async deleteTemplate(id: string, tenantId: string) {
     const template = await this.prisma.engineeringTemplate.findFirst({
@@ -304,6 +325,7 @@ export class EngineeringService {
       data: {
         template_id: dto.templateId,
         catalog_item_id: dto.catalogItemId || null,
+        dynamic_item_variable: dto.dynamicItemVariable || null,
         type: dto.type,
         name: dto.name,
         description: dto.description,
@@ -337,6 +359,7 @@ export class EngineeringService {
       where: { id },
       data: {
         catalog_item_id: dto.catalogItemId !== undefined ? (dto.catalogItemId || null) : undefined,
+        dynamic_item_variable: dto.dynamicItemVariable !== undefined ? (dto.dynamicItemVariable || null) : undefined,
         type: dto.type,
         name: dto.name,
         description: dto.description,

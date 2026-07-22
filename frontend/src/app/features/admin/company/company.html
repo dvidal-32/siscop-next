@@ -317,7 +317,7 @@
 
         <!-- Grouped Config Cards -->
         <div class="space-y-6">
-          @for (category of ['Ingeniería y Producción', 'Costos Operativos y Mano de Obra', 'Márgenes de Utilidad (Comercial)', 'Cotizaciones y Formatos', 'General y Regional']; track category) {
+          @for (category of ['Ingeniería y Producción', 'Costos Operativos y Mano de Obra', 'Márgenes de Utilidad (Comercial)', 'Cotizaciones y Formatos', 'Listas de Precios', 'General y Regional']; track category) {
             @if (groupedSettings().groups[category].length > 0) {
               <div class="bg-slate-950/40 border border-slate-850 rounded-xl overflow-hidden">
                 <div class="bg-slate-900/80 px-4 py-3 border-b border-slate-800/80 flex items-center gap-2">
@@ -329,6 +329,8 @@
                     <span class="text-lg">📈</span>
                   } @else if (category === 'Cotizaciones y Formatos') {
                     <span class="text-lg">📄</span>
+                  } @else if (category === 'Listas de Precios') {
+                    <span class="text-lg">🏷️</span>
                   } @else {
                     <span class="text-lg">🌍</span>
                   }

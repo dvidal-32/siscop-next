@@ -11,7 +11,7 @@ export class CreateVariableDto {
   @IsString({ message: 'La etiqueta de la variable debe ser una cadena de texto' })
   label: string;
 
-  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN o LIST' })
+  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN, LIST, FINISH_SELECTOR o ITEM_SELECTOR' })
   type: VariableType;
 
   @IsString({ message: 'El valor por defecto debe ser una cadena de texto' })

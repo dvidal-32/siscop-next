@@ -371,6 +371,10 @@ model CatalogItem {
   type             String         // profile, glass, accessory, supply
   unit             String         // m, m2, u, kg, etc.
   cost             Decimal        @db.Decimal(10, 2)
+  price_1          Decimal?       @db.Decimal(10, 2)
+  price_2          Decimal?       @db.Decimal(10, 2)
+  price_3          Decimal?       @db.Decimal(10, 2)
+  price_4          Decimal?       @db.Decimal(10, 2)
   image            String?        @db.Text
   is_active        Boolean        @default(true)
   created_at       DateTime       @default(now())
@@ -429,6 +433,7 @@ enum VariableType {
   BOOLEAN
   LIST
   FINISH_SELECTOR
+  ITEM_SELECTOR
 }
 
 enum ComponentType {
@@ -533,6 +538,7 @@ model EngineeringComponent {
   template        EngineeringTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
   catalog_item_id String?
   catalog_item    CatalogItem?  @relation(fields: [catalog_item_id], references: [id], onDelete: SetNull)
+  dynamic_item_variable String? // Nombre de la variable (ej. "VIDRIO") de la que se leerá el catalog_item_id
   type            ComponentType
   name            String        // "Jamba", "Vidrio Fijo", "Felpa"
   description     String?

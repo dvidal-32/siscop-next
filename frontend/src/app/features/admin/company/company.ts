@@ -31,6 +31,12 @@ export const SETTINGS_SCHEMA = {
   // Cotizaciones y Formatos
   'COTIZACION_CONDICIONES': { category: 'Cotizaciones y Formatos', label: 'Condiciones Comerciales', type: 'textarea' },
   'COTIZACION_NOTAS': { category: 'Cotizaciones y Formatos', label: 'Notas Adicionales', type: 'textarea' },
+
+  // Listas de Precios
+  'price_name_1': { category: 'Listas de Precios', label: 'Nombre Lista 1 (Def: Precio 1)', type: 'string' },
+  'price_name_2': { category: 'Listas de Precios', label: 'Nombre Lista 2 (Def: Precio 2)', type: 'string' },
+  'price_name_3': { category: 'Listas de Precios', label: 'Nombre Lista 3 (Def: Precio 3)', type: 'string' },
+  'price_name_4': { category: 'Listas de Precios', label: 'Nombre Lista 4 (Def: Precio 4)', type: 'string' },
 };
 
 export const COUNTRIES_LIST = [
@@ -191,13 +197,28 @@ export class CompanyComponent implements OnInit {
 
       // 2. Fetch Settings
       const settingsData = await this.tenantService.getSettings();
-      this.settingsList.set(
-        settingsData.map((s) => ({
-          key: s.key,
-          value: s.value,
-          valueType: s.value_type,
-        }))
-      );
+      const list = settingsData.map((s) => ({
+        key: s.key,
+        value: s.value,
+        valueType: s.value_type,
+      }));
+
+      // Auto-fill missing settings from schema
+      const existingKeys = new Set(list.map(s => s.key));
+      Object.keys(SETTINGS_SCHEMA).forEach(key => {
+        if (!existingKeys.has(key)) {
+          let defaultVal = '';
+          if (key === 'price_name_1') defaultVal = 'Precio 1';
+          if (key === 'price_name_2') defaultVal = 'Precio 2';
+          if (key === 'price_name_3') defaultVal = 'Precio 3';
+          if (key === 'price_name_4') defaultVal = 'Precio 4';
+          if (key === 'COTIZACION_CONDICIONES') defaultVal = 'Condiciones estándar...';
+          
+          list.push({ key, value: defaultVal, valueType: (SETTINGS_SCHEMA as any)[key].type === 'number' ? 'number' : 'string' });
+        }
+      });
+
+      this.settingsList.set(list);
 
       // Load form currency signals
       const code = settingsData.find(s => s.key === 'MONEDA_CODIGO')?.value || 'USD';
@@ -338,6 +359,7 @@ export class CompanyComponent implements OnInit {
       'Costos Operativos y Mano de Obra',
       'Márgenes de Utilidad (Comercial)',
       'Cotizaciones y Formatos',
+      'Listas de Precios',
       'General y Regional'
     ];
     categories.forEach(cat => groups[cat] = []);

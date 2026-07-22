@@ -563,7 +563,7 @@ export class QuotesComponent implements OnInit {
       const varsGroup = this.productsArray.at(newIndex).get('variables') as FormGroup;
       initialExtras.forEach((v: any) => {
         varsGroup.addControl(v.name, this.fb.control(
-          v.type === 'BOOLEAN' ? (v.default_value === 'true') : (Number(v.default_value) || 0),
+          v.type === 'BOOLEAN' ? (v.default_value === 'true') : (['STRING', 'FINISH_SELECTOR', 'ITEM_SELECTOR'].includes(v.type) ? (v.default_value || '') : (Number(v.default_value) || 0)),
           v.is_required ? [Validators.required] : []
         ));
       });
@@ -950,6 +950,31 @@ export class QuotesComponent implements OnInit {
       console.error(err);
       this.isLoading.set(false);
     }
+  }
+
+  getPrintableGlassName(prod: any): string {
+    if (!prod) return '';
+    let variables = prod.engineering_snapshot?.inputVariables || prod.variables;
+    if (typeof variables === 'string') {
+      try { variables = JSON.parse(variables); } catch (e) { return ''; }
+    }
+    if (!variables) return '';
+
+    for (const key of Object.keys(variables)) {
+      const val = variables[key];
+      if (typeof val === 'string' && val.length > 20) {
+        const item = this.catalogItems().find(it => it.id === val && it.type?.toLowerCase() === 'glass');
+        if (item) {
+          return item.name;
+        }
+      }
+    }
+    return '';
+  }
+
+  getItemsByCategory(category?: string): any[] {
+    if (!category) return this.catalogItems();
+    return this.catalogItems().filter(item => item.type?.toLowerCase() === category.toLowerCase());
   }
 
   getSetting(key: string): string {

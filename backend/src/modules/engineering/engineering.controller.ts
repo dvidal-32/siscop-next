@@ -77,6 +77,16 @@ export class EngineeringController {
     return this.engineeringService.updateTemplate(id, dto, tenantId);
   }
 
+  @Patch('templates-bulk-prices')
+  @RequirePermissions('engineering.update')
+  @AuditAction('engineering', 'bulk_update', 'engineering_template_prices')
+  bulkUpdatePrices(
+    @Body('items') items: any[],
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.engineeringService.bulkUpdatePrices(items, tenantId);
+  }
+
   @Delete('templates/:id')
   @RequirePermissions('engineering.delete')
   @AuditAction('engineering', 'delete', 'engineering_template')

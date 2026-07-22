@@ -1136,3 +1136,253 @@ Email: dvidal32@gmail.com
 Provided password: 123456
 Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
 Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- UPDATE START ---
+DTO received: {"firstName":"David","lastName":"Vidal","roleIds":["3d5ad6fb-53d7-4b2a-b2e0-6c46dbd67569"]}
+No password provided in DTO.
+
+--- LOGIN ATTEMPT ---
+Email: dvidal33@gmail.com
+Provided password: 15121904
+Hash in DB: $2b$10$l6KpntArWR9cHRa4ryh9SeoTMXujelJQFmaFqUfYYw4beoi.jBQjm
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true

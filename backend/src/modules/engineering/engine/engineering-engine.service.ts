@@ -102,9 +102,9 @@ export class EngineeringEngineService {
           : (variable.default_value === 'true');
         numericVariables[variable.name] = boolValue ? 1 : 0;
         logs.push(`Variable ${variable.name} = ${boolValue ? 1 : 0} (BOOLEAN)`);
-      } else if (variable.type === 'STRING' || variable.type === 'LIST' || variable.type === 'FINISH_SELECTOR') {
+      } else if (variable.type === 'STRING' || variable.type === 'LIST' || variable.type === 'FINISH_SELECTOR' || variable.type === 'ITEM_SELECTOR') {
         stringVariables[variable.name] = value ? String(value) : (variable.default_value || '');
-        logs.push(`Variable ${variable.name} = ${stringVariables[variable.name]} (TEXT/FINISH)`);
+        logs.push(`Variable ${variable.name} = ${stringVariables[variable.name]} (${variable.type})`);
       }
     }
 
@@ -204,10 +204,24 @@ export class EngineeringEngineService {
         }
       }
 
-      // 3c. Calcular costo de material (si el componente tiene artículo de catálogo enlazado)
+      // 3c. Calcular costo de material (si el componente tiene artículo de catálogo enlazado o dinámico)
       let materialCost = 0;
-      if (included && component.catalog_item) {
-        let activeCatalogItem = component.catalog_item;
+      let activeCatalogItem = component.catalog_item;
+      
+      if (included && !activeCatalogItem && (component as any).dynamic_item_variable) {
+        const dynamicItemId = stringVariables[(component as any).dynamic_item_variable];
+        if (dynamicItemId) {
+          activeCatalogItem = await this.prisma.catalogItem.findUnique({
+            where: { id: dynamicItemId },
+            include: { variants: { include: { finish: true } }, finish: true }
+          }) as any;
+          if (activeCatalogItem) {
+            logs.push(`  Artículo dinámico resuelto (${(component as any).dynamic_item_variable}): ${activeCatalogItem.code}`);
+          }
+        }
+      }
+
+      if (included && activeCatalogItem) {
         
         // --- RESOLUCIÓN DE ACABADO (PADRE/HIJO) ---
         // Si el artículo tiene hijos (es un padre), intentar buscar el hijo correspondiente al acabado seleccionado
@@ -219,15 +233,15 @@ export class EngineeringEngineService {
             const matchedChild = activeCatalogItem.variants.find((v: any) => v.finish_id === finishId);
             if (matchedChild) {
               activeCatalogItem = matchedChild as any;
-              logs.push(`  Variante seleccionada por acabado: ${activeCatalogItem.code} ($${activeCatalogItem.cost})`);
+              logs.push(`  Variante seleccionada por acabado: ${activeCatalogItem!.code} ($${activeCatalogItem!.cost})`);
             } else {
               logs.push(`  Advertencia: No se encontró variante para el acabado especificado. Usando artículo padre.`);
             }
           }
         }
 
-        const unitCost = Number(activeCatalogItem.cost);
-        const rawUnit = activeCatalogItem.unit.toLowerCase().trim();
+        const unitCost = Number(activeCatalogItem!.cost);
+        const rawUnit = activeCatalogItem!.unit.toLowerCase().trim();
 
         // Determinar la dimensión lineal principal (Largo, y si está vacío, usar Ancho o Alto)
         const linearDimension = formulaResult.length ?? formulaResult.width ?? formulaResult.height;

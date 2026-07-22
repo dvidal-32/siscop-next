@@ -54,4 +54,8 @@ export class CatalogService {
   async deleteItem(id: string): Promise<any> {
     return firstValueFrom(this.http.delete<any>(`${this.baseUrl}/catalog-items/${id}`));
   }
+
+  async bulkUpdatePrices(items: any[]): Promise<any> {
+    return firstValueFrom(this.http.patch<any>(`${this.baseUrl}/catalog-items/bulk-prices`, { items }));
+  }
 }

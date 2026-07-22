@@ -27,6 +27,26 @@ export class UpdateItemDto {
   @IsOptional()
   cost?: number;
 
+  @IsNumber({}, { message: 'El precio 1 debe ser un número decimal' })
+  @Min(0, { message: 'El precio 1 no puede ser menor que 0' })
+  @IsOptional()
+  price_1?: number;
+
+  @IsNumber({}, { message: 'El precio 2 debe ser un número decimal' })
+  @Min(0, { message: 'El precio 2 no puede ser menor que 0' })
+  @IsOptional()
+  price_2?: number;
+
+  @IsNumber({}, { message: 'El precio 3 debe ser un número decimal' })
+  @Min(0, { message: 'El precio 3 no puede ser menor que 0' })
+  @IsOptional()
+  price_3?: number;
+
+  @IsNumber({}, { message: 'El precio 4 debe ser un número decimal' })
+  @Min(0, { message: 'El precio 4 no puede ser menor que 0' })
+  @IsOptional()
+  price_4?: number;
+
   @IsBoolean({ message: 'El estado activo debe ser un booleano' })
   @IsOptional()
   isActive?: boolean;

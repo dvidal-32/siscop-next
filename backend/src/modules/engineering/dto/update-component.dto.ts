@@ -6,6 +6,10 @@ export class UpdateComponentDto {
   @IsOptional()
   catalogItemId?: string;
 
+  @IsString({ message: 'El nombre de la variable dinámica debe ser una cadena de texto' })
+  @IsOptional()
+  dynamicItemVariable?: string;
+
   @IsEnum(ComponentType, { message: 'El tipo debe ser PROFILE, GLASS, ACCESSORY, SUPPLY o LABOR' })
   @IsOptional()
   type?: ComponentType;

@@ -2,10 +2,8 @@ const { PrismaClient } = require('./node_modules/@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  const templates = await prisma.engineeringTemplate.findMany({
-    include: { minimum_areas: true },
-  });
-  console.log(JSON.stringify(templates, null, 2));
+  const items = await prisma.catalogItem.findMany({ where: { type: 'glass' } });
+  console.log(items.map(i => ({ id: i.id, name: i.name, unit: i.unit, type: i.type, cost: i.cost })));
 }
 
 main()

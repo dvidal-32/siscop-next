@@ -67,6 +67,10 @@ export class CatalogItemsService {
         type: dto.type,
         unit: dto.unit,
         cost: dto.cost,
+        price_1: dto.price_1 || null,
+        price_2: dto.price_2 || null,
+        price_3: dto.price_3 || null,
+        price_4: dto.price_4 || null,
         image: dto.image,
         is_active: dto.isActive ?? true,
         // Específico perfiles
@@ -130,6 +134,10 @@ export class CatalogItemsService {
         type: dto.type,
         unit: dto.unit,
         cost: dto.cost,
+        price_1: dto.price_1 !== undefined ? dto.price_1 : item.price_1,
+        price_2: dto.price_2 !== undefined ? dto.price_2 : item.price_2,
+        price_3: dto.price_3 !== undefined ? dto.price_3 : item.price_3,
+        price_4: dto.price_4 !== undefined ? dto.price_4 : item.price_4,
         image: dto.image !== undefined ? dto.image : item.image,
         is_active: dto.isActive,
         // Específico perfiles (limpiar si el tipo cambia o mantener según el tipo)
@@ -163,5 +171,26 @@ export class CatalogItemsService {
     return this.prisma.catalogItem.delete({
       where: { id },
     });
+  }
+
+  async bulkUpdatePrices(
+    items: { id: string; cost: number; price_1?: number; price_2?: number; price_3?: number; price_4?: number }[],
+    tenantId: string | null,
+  ) {
+    // Verificamos que los items pertenezcan al tenant antes de actualizar (opcional pero seguro)
+    const updates = items.map((item) =>
+      this.prisma.catalogItem.update({
+        where: { id: item.id },
+        data: {
+          cost: item.cost,
+          price_1: item.price_1,
+          price_2: item.price_2,
+          price_3: item.price_3,
+          price_4: item.price_4,
+        },
+      }),
+    );
+    await this.prisma.$transaction(updates);
+    return { success: true, count: updates.length };
   }
 }

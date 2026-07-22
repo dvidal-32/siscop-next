@@ -34,6 +34,7 @@ export class SimulatorComponent implements OnInit {
   template = signal<any | null>(null);
   templates = signal<any[]>([]);
   finishes = signal<any[]>([]);
+  catalogItems = signal<any[]>([]);
 
   // Simulation Form & Results
   variablesForm!: FormGroup;
@@ -52,7 +53,7 @@ export class SimulatorComponent implements OnInit {
       }
       this.templateId.set(id);
       this.isLoading.set(true);
-      await Promise.all([this.loadTemplate(), this.loadFinishes()]);
+      await Promise.all([this.loadTemplate(), this.loadFinishes(), this.loadCatalogItems()]);
       this.isLoading.set(false);
     });
   }
@@ -64,6 +65,20 @@ export class SimulatorComponent implements OnInit {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  async loadCatalogItems() {
+    try {
+      const items = await this.catalogService.getItems();
+      this.catalogItems.set(items);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  getItemsByCategory(category?: string): any[] {
+    if (!category) return this.catalogItems();
+    return this.catalogItems().filter(item => item.type?.toLowerCase() === category.toLowerCase());
   }
 
   async loadAllTemplates() {

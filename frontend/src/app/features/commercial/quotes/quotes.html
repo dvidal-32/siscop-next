@@ -297,7 +297,7 @@
             <div
               class="flex gap-3 px-2 pb-2 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <div class="w-28 shrink-0">Tipo *</div>
-              <div class="w-[22rem] shrink-0">Artículo *</div>
+              <div class="w-[28rem] shrink-0">Artículo *</div>
               <div class="w-16 shrink-0 text-center">Cant. *</div>
               <div class="w-20 shrink-0 text-center">Ancho *</div>
               <div class="w-20 shrink-0 text-center">Alto *</div>
@@ -324,17 +324,18 @@
                   </div>
 
                   <!-- Artículo -->
-                  <div class="w-[22rem] shrink-0">
-                    <div *ngIf="product.get('item_type')?.value === 'template'" class="flex gap-2 w-full">
-                      <select formControlName="template_id"
-                        (change)="onTemplateSelect(i)"
+                  <div class="w-[28rem] shrink-0">
+                    <div *ngIf="product.get('item_type')?.value === 'template'" class="flex gap-2 w-full items-end">
+                      <select formControlName="template_id" (change)="onTemplateSelect(i)"
                         class="flex-1 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate min-w-0">
                         <option value="">Seleccionar plantilla...</option>
-                        <option *ngFor="let tmpl of templates()" [value]="tmpl.id">{{ tmpl.code }} - {{ tmpl.name }}</option>
+                        <option *ngFor="let tmpl of templates()" [value]="tmpl.id">{{ tmpl.code }} - {{ tmpl.name }}
+                        </option>
                       </select>
 
                       <ng-container *ngIf="getTemplateFinishVarName(i) as finishVarName">
-                        <div formGroupName="variables" class="w-32 shrink-0">
+                        <div formGroupName="variables" class="w-28 shrink-0 flex flex-col gap-0.5">
+                          <span class="text-[9px] text-slate-400 font-medium uppercase px-1 truncate">Acabado</span>
                           <select [formControlName]="finishVarName"
                             class="w-full px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
                             <option value="">Acabado...</option>
@@ -342,21 +343,44 @@
                           </select>
                         </div>
                       </ng-container>
+
+                      <!-- Selector de Vidrio (ITEM_SELECTOR) -->
+                      <ng-container *ngIf="extraVariablesMap()[i] && extraVariablesMap()[i].length > 0">
+                        <div formGroupName="variables" class="flex gap-2 items-end">
+                          <ng-container *ngFor="let extraVar of extraVariablesMap()[i]">
+                            <div *ngIf="extraVar.type === 'ITEM_SELECTOR'" class="flex flex-col gap-0.5 w-36 shrink-0">
+                              <span class="text-[9px] text-slate-400 font-medium uppercase px-1 truncate">{{
+                                extraVar.label }}</span>
+                              <select [formControlName]="extraVar.name"
+                                class="w-full px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
+                                <option value="">-- {{ extraVar.label }} --</option>
+                                <option *ngFor="let item of getItemsByCategory(extraVar.list_options?.category)"
+                                  [value]="item.id">
+                                  {{ item.name }}
+                                </option>
+                              </select>
+                            </div>
+                          </ng-container>
+                        </div>
+                      </ng-container>
                     </div>
 
-                    <div *ngIf="product.get('item_type')?.value === 'catalog_item'" class="flex gap-2 w-full">
-                      <select formControlName="catalog_item_id"
-                        (change)="onCatalogItemSelect(i)"
+                    <div *ngIf="product.get('item_type')?.value === 'catalog_item'" class="flex gap-2 w-full items-end">
+                      <select formControlName="catalog_item_id" (change)="onCatalogItemSelect(i)"
                         class="flex-1 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate min-w-0">
                         <option value="">Seleccionar artículo...</option>
-                        <option *ngFor="let item of getParentCatalogItems()" [value]="item.id">{{ item.code }} - {{ item.name }}</option>
+                        <option *ngFor="let item of getParentCatalogItems()" [value]="item.id">{{ item.code }} - {{
+                          item.name }}</option>
                       </select>
-                      
-                      <select *ngIf="hasVariants(i)" formControlName="catalog_finish_id"
-                        class="w-32 shrink-0 px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
-                        <option value="">Acabado...</option>
-                        <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
-                      </select>
+
+                      <div *ngIf="hasVariants(i)" class="flex flex-col gap-0.5 w-32 shrink-0">
+                        <span class="text-[9px] text-slate-400 font-medium uppercase px-1 truncate">Acabado</span>
+                        <select formControlName="catalog_finish_id"
+                          class="w-full px-2 py-1.5 rounded bg-transparent border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] truncate">
+                          <option value="">Acabado...</option>
+                          <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -368,30 +392,37 @@
 
                   <!-- Ancho -->
                   <div class="w-20 shrink-0 flex items-center justify-center">
-                    <input *ngIf="!productsArray.at(i).get('width')?.disabled" formControlName="width" type="number" min="1" placeholder="Ancho"
+                    <input *ngIf="!productsArray.at(i).get('width')?.disabled" formControlName="width" type="number"
+                      min="1" placeholder="Ancho"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
-                    <span *ngIf="productsArray.at(i).get('width')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
+                    <span *ngIf="productsArray.at(i).get('width')?.disabled"
+                      class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Alto -->
                   <div class="w-20 shrink-0 flex items-center justify-center">
-                    <input *ngIf="!productsArray.at(i).get('height')?.disabled" formControlName="height" type="number" min="1" placeholder="Alto"
+                    <input *ngIf="!productsArray.at(i).get('height')?.disabled" formControlName="height" type="number"
+                      min="1" placeholder="Alto"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
-                    <span *ngIf="productsArray.at(i).get('height')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
+                    <span *ngIf="productsArray.at(i).get('height')?.disabled"
+                      class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Cuerpos -->
                   <div class="w-16 shrink-0 flex items-center justify-center">
-                    <input *ngIf="!productsArray.at(i).get('bodies')?.disabled" formControlName="bodies" type="number" min="1" placeholder="Cuerpos"
+                    <input *ngIf="!productsArray.at(i).get('bodies')?.disabled" formControlName="bodies" type="number"
+                      min="1" placeholder="Cuerpos"
                       class="w-full px-2 py-1.5 rounded bg-transparent border-transparent hover:border-slate-200 dark:hover:border-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs h-[32px] text-center" />
-                    <span *ngIf="productsArray.at(i).get('bodies')?.disabled" class="text-slate-400 font-mono text-[11px]">-</span>
+                    <span *ngIf="productsArray.at(i).get('bodies')?.disabled"
+                      class="text-slate-400 font-mono text-[11px]">-</span>
                   </div>
 
                   <!-- Computed: Area -->
                   <div class="w-16 shrink-0 text-center font-mono text-[11px] text-slate-500 dark:text-slate-400">
                     <ng-container
                       *ngIf="productsArray.at(i).get('template_id')?.value || productsArray.at(i).get('catalog_item_id')?.value">
-                      {{ (productsArray.at(i).get('item_type')?.value === 'catalog_item' && getCalculatedArea(i) === 0) ? '-' : (getCalculatedArea(i) | number:'1.2-2') }}
+                      {{ (productsArray.at(i).get('item_type')?.value === 'catalog_item' && getCalculatedArea(i) === 0)
+                      ? '-' : (getCalculatedArea(i) | number:'1.2-2') }}
                     </ng-container>
                   </div>
 
@@ -426,7 +457,8 @@
                     <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0"></div>
 
                     <ng-container *ngFor="let extraVar of extraVariablesMap()[i]">
-                      <div *ngIf="extraVar.type !== 'FINISH_SELECTOR'" class="flex items-center gap-2 shrink-0">
+                      <div *ngIf="extraVar.type !== 'FINISH_SELECTOR' && extraVar.type !== 'ITEM_SELECTOR'"
+                        class="flex items-center gap-2 shrink-0">
                         <label class="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap"
                           [title]="extraVar.name">
                           {{ extraVar.label }}<span *ngIf="extraVar.is_required" class="text-rose-500">*</span>
@@ -589,11 +621,13 @@
                 </td>
                 <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-400">
                   <ng-container *ngIf="product.item_type !== 'catalog_item'; else detailQtyOnly">
-                    {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span class="text-[10px]">mm</span>
+                    {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span
+                      class="text-[10px]">mm</span>
                   </ng-container>
                   <ng-template #detailQtyOnly>
                     <ng-container *ngIf="['m2', 'p2'].includes(product.catalog_item?.unit || '')">
-                      {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span class="text-[10px]">mm</span>
+                      {{ product.quantity }} de {{ product.width }} × {{ product.height }} <span
+                        class="text-[10px]">mm</span>
                     </ng-container>
                     <ng-container *ngIf="['m', 'pl'].includes(product.catalog_item?.unit || '')">
                       {{ product.quantity }} de {{ product.width }} <span class="text-[10px]">mm</span>
@@ -814,7 +848,11 @@
                         <td class="py-1 px-2 font-medium text-slate-800">
                           <ng-container
                             *ngIf="idx === 0 || ver.products[idx - 1].name !== prod.name || ver.products[idx - 1].notes !== prod.notes">
-                            <span class="whitespace-nowrap">{{ prod.name || 'Producto sin nombre' }}</span>
+                            <span class="whitespace-nowrap">
+                              {{ prod.name || 'Producto sin nombre' }}
+                              <span *ngIf="getPrintableGlassName(prod)" class="text-slate-500 ml-1 font-normal">C/ {{
+                                getPrintableGlassName(prod) }}</span>
+                            </span>
                             <div class="text-xs text-slate-500 font-normal mt-0.5" *ngIf="prod.notes">{{ prod.notes }}
                             </div>
                           </ng-container>
@@ -826,7 +864,8 @@
                           </ng-container>
                           <ng-template #printQtyOnly>
                             <ng-container *ngIf="['m2', 'p2'].includes(prod.catalog_item?.unit || '')">
-                              {{ prod.quantity }} de {{ prod.width }} × {{ prod.height }} <span class="text-[10px]">mm</span>
+                              {{ prod.quantity }} de {{ prod.width }} × {{ prod.height }} <span
+                                class="text-[10px]">mm</span>
                             </ng-container>
                             <ng-container *ngIf="['m', 'pl'].includes(prod.catalog_item?.unit || '')">
                               {{ prod.quantity }} de {{ prod.width }} <span class="text-[10px]">mm</span>

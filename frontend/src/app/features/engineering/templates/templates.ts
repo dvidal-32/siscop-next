@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { EngineeringService } from '../../../core/services/engineering.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CommonModule } from '@angular/common';
@@ -16,6 +16,7 @@ export class TemplatesComponent implements OnInit {
   private engineeringService = inject(EngineeringService);
   private catalogService = inject(CatalogService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
@@ -73,6 +74,23 @@ export class TemplatesComponent implements OnInit {
   async ngOnInit() {
     this.isLoading.set(true);
     await Promise.all([this.loadTemplates(), this.loadSystems()]);
+    
+    // Check if we need to auto-open a template for editing
+    const editId = this.route.snapshot.queryParamMap.get('edit');
+    if (editId) {
+      const template = this.templates().find(t => t.id === editId);
+      if (template) {
+        this.openEdit(template);
+      }
+      
+      // Clean query param
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { edit: null },
+        queryParamsHandling: 'merge'
+      });
+    }
+    
     this.isLoading.set(false);
   }
 

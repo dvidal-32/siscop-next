@@ -29,6 +29,8 @@ import { LibraryComponent } from './features/engineering/library/library';
 import { ClientsComponent } from './features/commercial/clients/clients';
 import { ProjectsComponent } from './features/commercial/projects/projects';
 import { QuotesComponent } from './features/commercial/quotes/quotes';
+import { PriceListComponent } from './features/commercial/price-list/price-list';
+import { TemplatePricingComponent } from './features/commercial/template-pricing/template-pricing';
 
 export const routes: Routes = [
   {
@@ -157,6 +159,12 @@ export const routes: Routes = [
       },
       // Rutas del Módulo Comercial
       {
+        path: 'commercial/price-list',
+        component: PriceListComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'settings.view' },
+      },
+      {
         path: 'commercial/clients',
         component: ClientsComponent,
         canActivate: [permissionGuard],
@@ -173,6 +181,12 @@ export const routes: Routes = [
         component: QuotesComponent,
         canActivate: [permissionGuard],
         data: { permission: 'quotes.view' },
+      },
+      {
+        path: 'commercial/template-pricing',
+        component: TemplatePricingComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'settings.view' },
       },
     ],
   },
