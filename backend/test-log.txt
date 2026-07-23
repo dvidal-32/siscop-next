@@ -1656,3 +1656,33 @@ Email: dvidal32@gmail.com
 Provided password: 123456
 Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
 Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true
+
+--- LOGIN ATTEMPT ---
+Email: dvidal32@gmail.com
+Provided password: 123456
+Hash in DB: $2b$10$aRFcHf3IrNCfcdEbGDwVZO2kH7Thz/sMZZ9RkkL/WES/73hBmaQc6
+Match: true

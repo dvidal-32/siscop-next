@@ -133,8 +133,8 @@
           No hay variables configuradas en esta plantilla.
         </div>
 
-        <form [formGroup]="variablesForm" *ngIf="template()?.variables?.length > 0" class="space-y-4">
-          <div *ngFor="let v of template().variables" class="space-y-1.5">
+        <form [formGroup]="variablesForm" *ngIf="template()?.variables?.length > 0" class="space-y-3">
+          <div *ngFor="let v of template().variables" class="space-y-1">
             <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ v.label }} ({{ v.name }})</label>
             
             <!-- Number Input -->
@@ -145,11 +145,11 @@
               [min]="v.min_value || 0"
               [max]="v.max_value || 99999"
               (keydown.enter)="focusNextInput($event)"
-              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
             >
 
             <!-- Boolean Input (Toggle) -->
-              <div *ngIf="v.type === 'BOOLEAN'" class="flex items-center gap-3 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div *ngIf="v.type === 'BOOLEAN'" class="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
                 <input 
                   type="checkbox" 
                   [formControlName]="v.name"
@@ -165,7 +165,7 @@
                 *ngIf="v.type === 'FINISH_SELECTOR'"
                 [formControlName]="v.name"
                 (keydown.enter)="focusNextInput($event)"
-                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
+                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
               >
                 <option value="">Seleccione un acabado...</option>
                 <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
@@ -176,7 +176,7 @@
                 *ngIf="v.type === 'ITEM_SELECTOR'"
                 [formControlName]="v.name"
                 (keydown.enter)="focusNextInput($event)"
-                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
+                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
               >
                 <option value="">Seleccione un artículo...</option>
                 <option *ngFor="let item of getItemsByCategory(v.list_options?.category)" [value]="item.id">{{ item.name }}</option>
@@ -187,23 +187,21 @@
               *ngIf="v.type === 'LIST'"
               [formControlName]="v.name"
               (keydown.enter)="focusNextInput($event)"
-              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
             >
               <option *ngFor="let opt of v.list_options" [value]="opt">{{ opt }}</option>
             </select>
 
             <!-- Computed Input (Editable with indicator) -->
-            <div *ngIf="v.type === 'COMPUTED'" class="relative">
+            <div *ngIf="v.type === 'COMPUTED'" class="relative flex items-center">
               <input 
                 type="number" 
                 [formControlName]="v.name"
-                [min]="v.min_value || 0"
-                [max]="v.max_value || 99999"
                 (keydown.enter)="focusNextInput($event)"
                 [placeholder]="v.computation_formula ? 'Calculado por: ' + v.computation_formula : 'Sin fórmula definida'"
-                class="w-full px-4 py-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/50 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono pr-10"
+                class="w-full px-3 py-2 pr-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono placeholder:text-slate-400 dark:placeholder:text-slate-600"
               >
-              <div class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 dark:text-indigo-500" title="Valor calculado automáticamente (puedes sobrescribirlo)">
+              <div class="absolute right-3 text-indigo-500/50" title="Valor calculado automáticamente (puedes sobrescribirlo)">
                 <i class="pi pi-calculator text-sm"></i>
               </div>
             </div>
@@ -215,17 +213,17 @@
     <!-- Right Columns: Output Breakdown & Cost -->
     <div class="lg:col-span-2 space-y-6">
       <!-- Premium Cost Card -->
-      <div class="bg-indigo-600 border border-indigo-500 rounded-2xl p-6 shadow-xl text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="bg-indigo-600 border border-indigo-500 rounded-xl p-4 shadow-xl text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Costo Estimado de Materiales</span>
-          <h2 class="text-4xl font-black mt-1">
+          <span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200">Costo Estimado Materiales</span>
+          <h2 class="text-3xl font-black mt-0.5">
             {{ (simulationResult()?.totalMaterialCost || 0) | tenantCurrency }}
           </h2>
         </div>
         
         <!-- Detalles de Área (Solo si aplica) -->
-        <div *ngIf="simulationResult()?.pricingMethod === 'area'" class="bg-indigo-700/50 rounded-xl px-4 py-3 border border-indigo-500/20 text-xs text-indigo-100 max-w-sm flex-1 flex flex-col gap-2">
-          <div class="font-bold border-b border-indigo-500/20 pb-1 mb-1 text-indigo-50">Estrategia: Venta por Área</div>
+        <div *ngIf="simulationResult()?.pricingMethod === 'area'" class="bg-indigo-700/50 rounded-lg px-3 py-2 border border-indigo-500/20 text-[11px] text-indigo-100 max-w-md flex-1 flex flex-col gap-1">
+          <div class="font-bold border-b border-indigo-500/20 pb-1 mb-0.5 text-indigo-50">Estrategia: Venta por Área</div>
           <div class="flex justify-between items-center">
             <span>Área calculada:</span>
             <strong class="text-white">{{ simulationResult()?.totalAreaUnit | number:'1.2-4' }} {{ simulationResult()?.areaUnit === 'sqft' ? 'sq ft' : 'm²' }}</strong>
@@ -234,17 +232,17 @@
             <span>Área (mm²):</span>
             <span>{{ simulationResult()?.totalAreaMm2 | number }}</span>
           </div>
-          <div class="flex justify-between items-center mt-1">
+          <div class="flex justify-between items-center mt-0.5">
             <span>Lista de Precio 1:</span>
             <strong class="text-emerald-300">{{ simulationResult()?.areaPriceL1 | tenantCurrency }} x {{ simulationResult()?.areaUnit === 'sqft' ? 'sq ft' : 'm²' }}</strong>
           </div>
-          <div class="flex justify-between items-center text-lg mt-2 pt-2 border-t border-indigo-500/30">
+          <div class="flex justify-between items-center text-sm mt-1 pt-1 border-t border-indigo-500/30">
             <span class="font-bold text-white">Precio Base Sugerido (L1):</span>
             <strong class="text-emerald-400 font-black">{{ (simulationResult()?.totalAreaUnit * simulationResult()?.areaPriceL1) | tenantCurrency }}</strong>
           </div>
         </div>
 
-        <div *ngIf="simulationResult()?.pricingMethod !== 'area'" class="bg-indigo-700/50 rounded-xl px-4 py-3 border border-indigo-500/20 text-xs text-indigo-100 max-w-xs">
+        <div *ngIf="simulationResult()?.pricingMethod !== 'area'" class="bg-indigo-700/50 rounded-lg px-3 py-2 border border-indigo-500/20 text-[11px] text-indigo-100 max-w-xs">
           Costos calculados dinámicamente según precios actuales en tu catálogo de materiales.
         </div>
       </div>
@@ -262,12 +260,12 @@
           <table class="w-full text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-950/40 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider">
-                <th class="p-4">Pieza / Componente</th>
-                <th class="p-4">Tipo</th>
-                <th class="p-4 text-center">Cantidad</th>
-                <th class="p-4">Dimensiones (mm)</th>
-                <th class="p-4">Dimensiones (pulg.)</th>
-                <th class="p-4 text-right">Costo Material</th>
+                <th class="px-2 py-2">Pieza / Componente</th>
+                <th class="px-2 py-2">Tipo</th>
+                <th class="px-2 py-2 text-center">Cantidad</th>
+                <th class="px-2 py-2">Dimensiones (mm)</th>
+                <th class="px-2 py-2">Dimensiones (pulg.)</th>
+                <th class="px-2 py-2 text-right">Costo Material</th>
               </tr>
             </thead>
             <tbody>
@@ -282,8 +280,8 @@
                   class="border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-100/50 dark:hover:bg-slate-850/20 transition-colors"
                 >
                   <!-- Name & Code -->
-                  <td class="p-4">
-                    <div class="font-bold text-slate-800 dark:text-white">{{ c.name }}</div>
+                  <td class="px-2 py-1.5">
+                    <div class="font-bold text-[11px] text-slate-800 dark:text-white leading-tight">{{ c.name }}</div>
                     <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1.5" *ngIf="c.catalogItemCode">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       {{ c.catalogItemCode }}
@@ -291,20 +289,20 @@
                   </td>
 
                   <!-- Type Badge -->
-                  <td class="p-4">
-                    <span class="px-2 py-0.5 text-[9px] font-semibold rounded bg-slate-100 dark:bg-slate-855 text-slate-550 dark:text-slate-400 font-mono uppercase font-bold">
+                  <td class="px-2 py-1.5">
+                    <span class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-slate-100 dark:bg-slate-855 text-slate-550 dark:text-slate-400 font-mono uppercase font-bold">
                       {{ getComponentTypeLabel(c.type) }}
                     </span>
                   </td>
 
                   <!-- Qty -->
-                  <td class="p-4 text-center font-bold text-slate-800 dark:text-white font-mono">
+                  <td class="px-2 py-1.5 text-center font-bold text-slate-800 dark:text-white font-mono text-[11px]">
                     {{ c.formulas.quantity }}
                   </td>
 
                   <!-- Dimensions formulas evaluate -->
-                  <td class="p-4 font-mono text-slate-600 dark:text-slate-300">
-                    <div class="space-y-0.5 text-[10px]">
+                  <td class="px-2 py-1.5 font-mono text-slate-600 dark:text-slate-300">
+                    <div class="space-y-0 text-[10px]">
                       <div *ngIf="c.formulas.length !== undefined">
                         Largo: <span class="text-indigo-650 dark:text-indigo-400 font-bold">{{ c.formulas.length }} mm</span> ({{ c.formulas.length / 1000 }} m)
                       </div>
@@ -321,8 +319,8 @@
                   </td>
 
                   <!-- Dimensions formulas evaluate (inches) -->
-                  <td class="p-4 font-mono text-slate-600 dark:text-slate-300">
-                    <div class="space-y-0.5 text-[10px]">
+                  <td class="px-2 py-1.5 font-mono text-slate-600 dark:text-slate-300">
+                    <div class="space-y-0 text-[10px]">
                       <div *ngIf="c.formulas.length !== undefined">
                         Largo: <span class="text-emerald-650 dark:text-emerald-400 font-bold">{{ mmToFractionalInches(c.formulas.length) }}</span>
                       </div>
@@ -336,7 +334,7 @@
                   </td>
 
                   <!-- Cost -->
-                  <td class="p-4 text-right font-bold text-slate-800 dark:text-white font-mono">
+                  <td class="px-2 py-1.5 text-right font-bold text-slate-800 dark:text-white font-mono text-[11px]">
                     ${{ c.materialCost | number:'1.2-2' }}
                     <span class="text-[10px] text-slate-500 font-normal block" *ngIf="c.unit">/{{ c.unit }}</span>
                   </td>

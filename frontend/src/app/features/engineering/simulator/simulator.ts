@@ -135,7 +135,18 @@ export class SimulatorComponent implements OnInit {
   async runSimulation() {
     if (this.variablesForm.invalid) return;
 
-    const values = this.variablesForm.value;
+    const values = { ...this.variablesForm.value };
+
+    // Omit COMPUTED variables from the payload if they haven't been manually overridden
+    this.template()?.variables?.forEach((v: any) => {
+      if (v.type === 'COMPUTED') {
+        const control = this.variablesForm.get(v.name);
+        if (control && (!control.dirty || control.value === '' || control.value === null)) {
+          delete values[v.name];
+        }
+      }
+    });
+
     try {
       this.errorMessage.set(null);
       const result = await this.engineeringService.simulate(this.templateId(), values);
@@ -187,6 +198,12 @@ export class SimulatorComponent implements OnInit {
       let displayVal = val;
       if (v.type === 'BOOLEAN') {
         displayVal = val ? 'Sí' : 'No';
+      } else if (v.type === 'FINISH_SELECTOR') {
+        const finish = this.finishes().find((f: any) => f.id === val);
+        if (finish) displayVal = finish.name;
+      } else if (v.type === 'ITEM_SELECTOR') {
+        const item = this.catalogItems().find((i: any) => i.id === val);
+        if (item) displayVal = item.name;
       }
       return {
         label: v.label,
@@ -209,36 +226,42 @@ export class SimulatorComponent implements OnInit {
         const qty = c.formulas.quantity;
         const costStr = c.materialCost ? this.currencyPipe.transform(c.materialCost) : this.currencyPipe.transform(0);
         
-        let dimsHtml = '';
-        let inchesHtml = '';
-        if (c.formulas.length !== undefined) {
-          dimsHtml += `<div>Largo: <strong>${c.formulas.length} mm</strong></div>`;
-          inchesHtml += `<div>Largo: <strong>${this.mmToFractionalInches(c.formulas.length)}</strong></div>`;
-        }
+        let dimsMm = [];
+        let dimsIn = [];
+
         if (c.formulas.width !== undefined) {
-          dimsHtml += `<div>Ancho: <strong>${c.formulas.width} mm</strong></div>`;
-          inchesHtml += `<div>Ancho: <strong>${this.mmToFractionalInches(c.formulas.width)}</strong></div>`;
+          dimsMm.push(String(c.formulas.width));
+          dimsIn.push(this.mmToFractionalInches(c.formulas.width));
         }
         if (c.formulas.height !== undefined) {
-          dimsHtml += `<div>Alto: <strong>${c.formulas.height} mm</strong></div>`;
-          inchesHtml += `<div>Alto: <strong>${this.mmToFractionalInches(c.formulas.height)}</strong></div>`;
+          dimsMm.push(String(c.formulas.height));
+          dimsIn.push(this.mmToFractionalInches(c.formulas.height));
         }
-        if (c.formulas.area !== undefined) {
-          dimsHtml += `<div>Área: <strong>${c.formulas.area} m²</strong></div>`;
-          inchesHtml += `<div>Área: <strong>-</strong></div>`;
+
+        let dimsHtml = '';
+        let inchesHtml = '';
+
+        if (dimsMm.length > 0) {
+           dimsHtml = `<strong>${dimsMm.join(' x ')} mm</strong>`;
+           inchesHtml = `<strong>${dimsIn.join(' x ')}</strong>`;
+        } else if (c.formulas.length !== undefined) {
+           dimsHtml = `<strong>${c.formulas.length} mm</strong>`;
+           inchesHtml = `<strong>${this.mmToFractionalInches(c.formulas.length)}</strong>`;
+        } else if (c.formulas.area !== undefined) {
+           dimsHtml = `<strong>${c.formulas.area} m²</strong>`;
+           inchesHtml = `<strong>-</strong>`;
         }
         
         return `
           <tr>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top;">
-              <div style="font-weight: bold; color: #1e293b;">${c.name}</div>
-              ${c.catalogItemCode ? `<div style="font-size: 10px; color: #64748b; margin-top: 2px;">Cód: ${c.catalogItemCode}</div>` : ''}
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top;">
+              <div style="font-weight: bold; color: #1e293b;">${c.catalogItemCode ? c.catalogItemCode + ' - ' : ''}${c.name}</div>
             </td>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; text-transform: uppercase; font-family: monospace;">${this.getComponentTypeLabel(c.type)}</td>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: top; font-weight: bold; font-family: monospace;">${qty}</td>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 11px; color: #334155; line-height: 1.4;">${dimsHtml}</td>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 11px; color: #334155; line-height: 1.4;">${inchesHtml}</td>
-            <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: top; font-weight: bold; font-family: monospace;">${costStr}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; text-transform: uppercase; font-family: monospace; font-size: 10px;">${this.getComponentTypeLabel(c.type)}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: top; font-weight: bold; font-family: monospace; font-size: 10px;">${qty}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 10px; color: #334155; line-height: 1.2;">${dimsHtml}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; font-family: monospace; font-size: 10px; color: #334155; line-height: 1.2;">${inchesHtml}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: top; font-weight: bold; font-family: monospace; font-size: 11px;">${costStr}</td>
           </tr>
         `;
       })
@@ -247,8 +270,8 @@ export class SimulatorComponent implements OnInit {
     const varsHtml = variablesList
       .map((v: any) => `
         <tr>
-          <td style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-weight: 600; color: #475569;">${v.label} (${v.name})</td>
-          <td style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-family: monospace; font-weight: bold; color: #0f172a; text-align: right;">${v.value}</td>
+          <td style="padding: 3px 0; border-bottom: 1px dashed #e2e8f0; font-weight: 600; color: #475569; font-size: 10px;">${v.label} (${v.name})</td>
+          <td style="padding: 3px 0; border-bottom: 1px dashed #e2e8f0; font-family: monospace; font-weight: bold; color: #0f172a; text-align: right; font-size: 10px;">${v.value}</td>
         </tr>
       `)
       .join('');
@@ -319,12 +342,13 @@ export class SimulatorComponent implements OnInit {
             grid-template-columns: 1fr 1.5fr;
             gap: 20px;
             margin-bottom: 25px;
+            align-items: start;
           }
           
           .card {
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 15px;
+            padding: 10px;
             background: #f8fafc;
           }
           
@@ -348,7 +372,7 @@ export class SimulatorComponent implements OnInit {
             background: #1e3a8a;
             color: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -364,7 +388,7 @@ export class SimulatorComponent implements OnInit {
           
           .cost-card h2 {
             margin: 5px 0 0 0;
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 800;
           }
           
@@ -397,9 +421,9 @@ export class SimulatorComponent implements OnInit {
             color: #475569;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 10px;
+            font-size: 9px;
             letter-spacing: 0.5px;
-            padding: 10px 12px;
+            padding: 6px 8px;
             border-bottom: 2px solid #e2e8f0;
             text-align: left;
           }
