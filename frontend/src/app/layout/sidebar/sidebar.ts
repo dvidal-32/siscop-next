@@ -51,6 +51,12 @@ export class SidebarComponent implements OnInit {
       'superadmin.plans': 'pi pi-ticket',
       'superadmin.settings': 'pi pi-cog',
       'superadmin.tenants': 'pi pi-building',
+      'inventory': 'pi pi-box',
+      'inventory.dashboard': 'pi pi-chart-line',
+      'inventory.kardex': 'pi pi-list',
+      'inventory.purchase-orders': 'pi pi-shopping-cart',
+      'inventory.suppliers': 'pi pi-truck',
+      'inventory.warehouses': 'pi pi-building',
     };
     return iconMap[item.code] || 'pi pi-folder';
   }

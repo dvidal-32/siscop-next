@@ -27,6 +27,7 @@ export interface SimulationResult {
   templateName: string;
   templateCode: string;
   inputVariables: Record<string, number | string | boolean>;
+  evaluatedVariables?: Record<string, number>;
   components: ComponentResult[];
   totalMaterialCost: number;
   

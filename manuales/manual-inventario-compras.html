@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario: Módulo de Inventario y Compras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            flowchart: { curve: 'basis' }
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-700 antialiased p-4 md:p-10">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+        
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-indigo-600 to-blue-500 p-8 md:p-12 text-white text-center">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 flex items-center justify-center gap-3">
+                <span class="text-4xl md:text-5xl">📦</span>
+                Manual de Usuario: Inventario y Compras
+            </h1>
+            <p class="text-indigo-100 text-lg max-w-2xl mx-auto leading-relaxed">
+                Sabemos que administrar el inventario puede parecer complicado, pero hemos diseñado esta herramienta para que sea tan fácil como organizar la despensa de tu propia casa. En este manual te llevaremos de la mano.
+            </p>
+        </header>
+
+        <div class="p-8 md:p-12 space-y-12">
+
+            <!-- Section 1 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">🌟</span> 1. Conceptos Básicos
+                </h2>
+                <p class="mb-4 text-slate-600">Antes de presionar botones, vamos a ponernos de acuerdo en tres palabras que verás todo el tiempo:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 text-indigo-600">Bodega / Almacén</h3>
+                        <p class="text-sm">Es el lugar físico donde guardas las cosas. Piensa que tu empresa es una casa; una bodega podría ser "La Cocina" y otra "El Garaje".</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 text-indigo-600">Artículo</h3>
+                        <p class="text-sm">Es cualquier cosa que compras para usar o vender (ej. tornillos, perfiles de aluminio, cristales, silicón).</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 text-indigo-600">Orden de Compra</h3>
+                        <p class="text-sm">Es la lista de compras formal que le mandas a quien te vende (tu proveedor). Es la promesa de que vas a comprar algo.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">📊</span> 2. El Dashboard (Tu Panel de Control)
+                </h2>
+                <p class="mb-6 text-slate-600">
+                    El Dashboard es la primera pantalla que ves. Es como el tablero del velocímetro de tu carro: te dice exactamente cómo está la salud de tus materiales de un solo vistazo.
+                </p>
+                
+                <h3 class="font-bold text-slate-800 text-lg mb-4">¿Qué significan las tarjetas de colores arriba?</h3>
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start gap-4">
+                        <div class="bg-blue-100 text-blue-600 p-3 rounded-xl flex-shrink-0">📦</div>
+                        <div>
+                            <strong class="text-slate-800">Total Artículos:</strong>
+                            <p class="text-slate-600">Cuántos tipos de productos diferentes tienes registrados en todo el sistema.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="bg-rose-100 text-rose-600 p-3 rounded-xl flex-shrink-0">⚠️</div>
+                        <div>
+                            <strong class="text-slate-800">Bajo Stock:</strong>
+                            <p class="text-slate-600">Te avisa cuántos productos se están agotando. ¡Si ves un número alto aquí, es hora de ir de compras!</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="bg-emerald-100 text-emerald-600 p-3 rounded-xl flex-shrink-0">💵</div>
+                        <div>
+                            <strong class="text-slate-800">Valor Inventario:</strong>
+                            <p class="text-slate-600">Si sumas el costo de absolutamente todo lo que tienes guardado en todas tus bodegas, esto es lo que vale en dinero real.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <h3 class="font-bold text-slate-800 text-lg mb-2">La Tabla de Control de Stock</h3>
+                <p class="text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    Debajo de las tarjetas, verás una lista larga. Esta lista te muestra cada artículo, dónde está guardado y <strong>cuántas unidades te quedan</strong>.<br><br>
+                    • Escribe en el recuadro de <strong>Buscar</strong> para encontrar si te quedan "Tornillos".<br>
+                    • Si ves una cajita de color rojo que dice "Bajo", significa que deberías comprar más de ese artículo pronto.
+                </p>
+            </section>
+
+            <!-- Section 3 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">📝</span> 3. Órdenes de Compra (Cómo pedir material)
+                </h2>
+                <p class="mb-4 text-slate-600">Aquí es donde sucede la magia cuando necesitas comprar cosas nuevas para tu negocio.</p>
+                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+                    <ol class="list-decimal list-inside space-y-3 text-slate-700 font-medium">
+                        <li>Ve a la sección de <strong class="text-indigo-600">Órdenes de Compra</strong> en el menú izquierdo.</li>
+                        <li>Haz clic en el botón verde grande que dice <strong class="text-emerald-600">"+ Nueva Orden"</strong>.</li>
+                        <li><strong>Elige el Proveedor:</strong> ¿A quién le vas a comprar? (Ej. Ferretería El Sol).</li>
+                        <li><strong>Bodega Destino:</strong> ¿Dónde se guardará cuando llegue?</li>
+                        <li><strong>Agrega los artículos:</strong> Busca lo que quieres pedir, pon la cantidad y el precio.</li>
+                        <li>Dale a <strong>Guardar</strong>. ¡Listo! Ya creaste tu lista formal (estado "Pendiente").</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Section 4 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">🚚</span> 4. Recibir Mercancía (¡Llegó el camión!)
+                </h2>
+                <p class="mb-6 text-slate-600">
+                    Crear la Orden de Compra no suma los artículos mágicamente a tu bodega. El sistema sabe que los proveedores pueden entregar por partes. Debes decirle al sistema cuando la mercancía <strong>físicamente llegó por la puerta</strong>.
+                </p>
+
+                <h3 class="font-bold text-slate-800 text-lg mb-4">Pasos para recibir:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 items-center">
+                    <div>
+                        <ol class="space-y-4">
+                            <li class="flex gap-3">
+                                <span class="bg-slate-200 text-slate-600 w-7 h-7 rounded-full flex items-center justify-center font-bold shrink-0">1</span>
+                                <span class="text-slate-700">En la lista de Órdenes de Compra, busca tu orden pendiente.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="bg-slate-200 text-slate-600 w-7 h-7 rounded-full flex items-center justify-center font-bold shrink-0">2</span>
+                                <span class="text-slate-700">Haz clic en el botón azul <strong>"Recibir Mercancía"</strong>.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="bg-slate-200 text-slate-600 w-7 h-7 rounded-full flex items-center justify-center font-bold shrink-0">3</span>
+                                <span class="text-slate-700">Si te llegaron los 100 completos, deja el número en 100. Si solo te trajeron 50, escribe 50.</span>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="bg-slate-200 text-slate-600 w-7 h-7 rounded-full flex items-center justify-center font-bold shrink-0">4</span>
+                                <span class="text-slate-700">Haz clic en <strong>Guardar Recepción</strong>.</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-200">
+                        <h4 class="font-bold text-amber-800 flex items-center gap-2 mb-2">
+                            <span>⚠️</span> MAGIA AUTOMÁTICA
+                        </h4>
+                        <p class="text-amber-700 text-sm leading-relaxed">
+                            Cuando haces clic en Guardar Recepción, el sistema hace dos cosas al instante:<br><br>
+                            1. <strong>Suma las cantidades</strong> directamente a la bodega que elegiste.<br>
+                            2. <strong>Actualiza el costo</strong> del artículo usando el precio de tu factura, para que siempre sepas cuánto valen en la vida real.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Graph -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
+                    <h3 class="font-bold text-slate-500 uppercase tracking-wider text-sm mb-4">El ciclo de la compra</h3>
+                    <div class="mermaid flex justify-center">
+                        graph LR
+                            A[Falta Material] --> B[Crear Orden de Compra]
+                            B --> C[Esperar al Camión]
+                            C --> D[Recibir Mercancía]
+                            D --> E[¡Stock y Costos Actualizados!]
+                            
+                            style A fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,rx:10
+                            style B fill:#e0e7ff,stroke:#818cf8,stroke-width:2px,rx:10
+                            style C fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,rx:10
+                            style D fill:#dbeafe,stroke:#60a5fa,stroke-width:2px,rx:10
+                            style E fill:#fef3c7,stroke:#fbbf24,stroke-width:2px,rx:10
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">🕵️‍♂️</span> 5. El Kardex (El historial médico)
+                </h2>
+                <p class="mb-4 text-slate-600">
+                    Imagina que jurabas que tenías 20 cristales, vas a la bodega y solo hay 5. ¿Qué pasó? ¿Quién los sacó? ¿Cuándo? Para resolver estos misterios existe el <strong>Kardex</strong>. Es un registro imborrable de todos los movimientos.
+                </p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 bg-emerald-50 text-emerald-800 p-4 rounded-xl border border-emerald-100">
+                        <div class="text-2xl">🟢</div>
+                        <div>
+                            <strong>Entradas:</strong> Cuando el producto entró a la bodega (Casi siempre por una Orden de Compra). Suma a tu inventario.
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 bg-rose-50 text-rose-800 p-4 rounded-xl border border-rose-100">
+                        <div class="text-2xl">🔴</div>
+                        <div>
+                            <strong>Salidas:</strong> Cuando el producto salió (porque se usó para fabricar algo o se dañó). Resta a tu inventario.
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 bg-blue-50 text-blue-800 p-4 rounded-xl border border-blue-100">
+                        <div class="text-2xl">🔵</div>
+                        <div>
+                            <strong>Balance:</strong> Te dice exactamente cuánto tenías en la mano justo en el momento de ese movimiento.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6 -->
+            <section>
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3 border-b-2 border-slate-100 pb-3 mb-6">
+                    <span class="text-3xl">🏠</span> 6. Bodegas y Proveedores
+                </h2>
+                <p class="mb-4 text-slate-600">Finalmente, para que todo el sistema funcione, necesitas tener registrados tus lugares y tus contactos en sus respectivas secciones del menú.</p>
+                <ul class="list-disc list-outside ml-5 space-y-2 text-slate-600">
+                    <li><strong>Bodegas:</strong> Aquí puedes crear nuevas ubicaciones. Si un día alquilas un local nuevo para guardar mercancía, vienes aquí, le das a "Nueva Bodega" y le pones nombre.</li>
+                    <li><strong>Proveedores:</strong> Es tu agenda de contactos de las empresas que te venden. Tenerlos registrados te permite seleccionarlos rápidamente cuando vayas a crearles una Orden de Compra.</li>
+                </ul>
+            </section>
+
+            <!-- Footer -->
+            <footer class="bg-slate-50 border border-slate-200 p-8 rounded-2xl text-center mt-12">
+                <div class="text-4xl mb-4">🎉</div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">¡Felicidades!</h3>
+                <p class="text-slate-600 max-w-xl mx-auto">
+                    Con esto ya tienes el conocimiento necesario para manejar el inventario como todo un profesional. Recuerda: el secreto de un buen inventario es <strong>siempre registrar en el sistema lo que pasa en la vida real.</strong> ¡Mucho éxito!
+                </p>
+            </footer>
+
+        </div>
+    </div>
+
+</body>
+</html>

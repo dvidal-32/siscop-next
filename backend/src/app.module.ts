@@ -27,6 +27,10 @@ import { EngineeringModule } from './modules/engineering/engineering.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { WarehousesModule } from './modules/warehouses/warehouses.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
 
 @Module({
   imports: [
@@ -55,6 +59,10 @@ import { QuotesModule } from './modules/quotes/quotes.module';
     ClientsModule,
     ProjectsModule,
     QuotesModule,
+    SuppliersModule,
+    WarehousesModule,
+    InventoryModule,
+    PurchaseOrdersModule,
   ],
   controllers: [AppController],
   providers: [

@@ -12,6 +12,8 @@ export class MenuService implements OnApplicationBootstrap {
     await this.assureBillingPermissions();
     await this.assureEngineeringPermissions();
     await this.assureCommercialPermissions();
+    await this.assureInventoryPermissions();
+    await this.seedInventoryMenu();
     await this.seedDefaultPlans();
     await this.seedSuperAdminAndPlatformSettings();
   }
@@ -965,6 +967,136 @@ export class MenuService implements OnApplicationBootstrap {
         });
       }
     }
+  }
+
+  private async assureInventoryPermissions() {
+    const permissionsToAssure = [
+      { code: 'inventory.view', name: 'Ver Inventario', module: 'inventory', action: 'view' },
+      { code: 'inventory.manage', name: 'Gestionar Inventario', module: 'inventory', action: 'manage' },
+      { code: 'purchases.view', name: 'Ver Compras', module: 'purchases', action: 'view' },
+      { code: 'purchases.manage', name: 'Gestionar Compras', module: 'purchases', action: 'manage' },
+    ];
+
+    const dbPermissions: any[] = [];
+    for (const perm of permissionsToAssure) {
+      const dbPerm = await this.prisma.permission.upsert({
+        where: { code: perm.code },
+        update: {},
+        create: perm,
+      });
+      dbPermissions.push(dbPerm);
+    }
+
+    const adminRoles = await this.prisma.role.findMany({
+      where: { name: 'Administrador' },
+    });
+
+    for (const role of adminRoles) {
+      for (const perm of dbPermissions) {
+        const hasPermission = await this.prisma.rolePermission.findUnique({
+          where: {
+            role_id_permission_id: {
+              role_id: role.id,
+              permission_id: perm.id,
+            },
+          },
+        });
+        if (!hasPermission) {
+          await this.prisma.rolePermission.create({
+            data: {
+              role_id: role.id,
+              permission_id: perm.id,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  private async seedInventoryMenu() {
+    let inventoryParent = await this.prisma.menuItem.findUnique({
+      where: { code: 'inventory' },
+    });
+    if (!inventoryParent) {
+      inventoryParent = await this.prisma.menuItem.create({
+        data: {
+          code: 'inventory',
+          label: 'Inventario y Compras',
+          route: '',
+          icon: 'inventory_2',
+          order: 3, // Ponerlo entre Operaciones y Comercial (o ajustar)
+        },
+      });
+
+      await this.prisma.menuItem.createMany({
+        data: [
+          {
+            parent_id: inventoryParent.id,
+            code: 'inventory.dashboard',
+            label: 'Dashboard de Inventario',
+            route: '/inventory/dashboard',
+            icon: 'analytics',
+            required_permission: 'inventory.view',
+            order: 0,
+          },
+          {
+            parent_id: inventoryParent.id,
+            code: 'inventory.suppliers',
+            label: 'Proveedores',
+            route: '/inventory/suppliers',
+            icon: 'local_shipping',
+            required_permission: 'purchases.view',
+            order: 1,
+          },
+          {
+            parent_id: inventoryParent.id,
+            code: 'inventory.purchase-orders',
+            label: 'Órdenes de Compra',
+            route: '/inventory/purchase-orders',
+            icon: 'shopping_cart',
+            required_permission: 'purchases.view',
+            order: 2,
+          },
+          {
+            parent_id: inventoryParent.id,
+            code: 'inventory.kardex',
+            label: 'Kardex (Movimientos)',
+            route: '/inventory/kardex',
+            icon: 'swap_horiz',
+            required_permission: 'inventory.view',
+            order: 3,
+          },
+          {
+            parent_id: inventoryParent.id,
+            code: 'inventory.warehouses',
+            label: 'Bodegas (Almacenes)',
+            route: '/inventory/warehouses',
+            icon: 'store',
+            required_permission: 'inventory.view',
+            order: 4,
+          },
+        ],
+      });
+      
+      // Update order of engineering and commercial to push them down
+      await this.prisma.menuItem.updateMany({
+        where: { code: 'engineering' },
+        data: { order: 4 },
+      });
+      await this.prisma.menuItem.updateMany({
+        where: { code: 'commercial' },
+        data: { order: 5 },
+      });
+      await this.prisma.menuItem.updateMany({
+        where: { code: 'superadmin' },
+        data: { order: 6 },
+      });
+    }
+
+    // Force update the order for existing menus
+    await this.prisma.menuItem.updateMany({ where: { code: 'inventory.suppliers' }, data: { order: 1 } });
+    await this.prisma.menuItem.updateMany({ where: { code: 'inventory.purchase-orders' }, data: { order: 2 } });
+    await this.prisma.menuItem.updateMany({ where: { code: 'inventory.kardex' }, data: { order: 3 } });
   }
 }
 

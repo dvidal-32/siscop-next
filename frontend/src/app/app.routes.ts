@@ -32,6 +32,13 @@ import { QuotesComponent } from './features/commercial/quotes/quotes';
 import { PriceListComponent } from './features/commercial/price-list/price-list';
 import { TemplatePricingComponent } from './features/commercial/template-pricing/template-pricing';
 
+// Rutas de Inventario
+import { InventoryDashboardComponent } from './features/inventory/dashboard/dashboard';
+import { KardexComponent } from './features/inventory/kardex/kardex';
+import { PurchaseOrdersComponent } from './features/inventory/purchase-orders/purchase-orders';
+import { SuppliersComponent } from './features/inventory/suppliers/suppliers';
+import { WarehousesComponent } from './features/inventory/warehouses/warehouses';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -187,6 +194,37 @@ export const routes: Routes = [
         component: TemplatePricingComponent,
         canActivate: [permissionGuard],
         data: { permission: 'settings.view' },
+      },
+      // Rutas de Inventario
+      {
+        path: 'inventory/dashboard',
+        component: InventoryDashboardComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'inventory.view' }, // Asegurarnos de usar permisos más adelante
+      },
+      {
+        path: 'inventory/kardex',
+        component: KardexComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'inventory.view' },
+      },
+      {
+        path: 'inventory/purchase-orders',
+        component: PurchaseOrdersComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'purchases.view' },
+      },
+      {
+        path: 'inventory/suppliers',
+        component: SuppliersComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'purchases.view' },
+      },
+      {
+        path: 'inventory/warehouses',
+        component: WarehousesComponent,
+        canActivate: [permissionGuard],
+        data: { permission: 'inventory.view' },
       },
     ],
   },

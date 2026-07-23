@@ -33,6 +33,7 @@ export class EngineeringService {
       include: {
         system: true,
         minimum_areas: true,
+        variables: { orderBy: { order: 'asc' } },
         source_template: { select: { id: true, name: true, code: true } },
         _count: { select: { variables: true, components: true } },
       },
@@ -244,6 +245,7 @@ export class EngineeringService {
         is_required: dto.isRequired ?? true,
         min_value: dto.minValue,
         max_value: dto.maxValue,
+        computation_formula: dto.computationFormula,
         list_options: dto.listOptions,
         order: dto.order ?? 0,
       },
@@ -280,6 +282,7 @@ export class EngineeringService {
         is_required: dto.isRequired,
         min_value: dto.minValue,
         max_value: dto.maxValue,
+        computation_formula: dto.computationFormula,
         list_options: dto.listOptions,
         order: dto.order,
       },

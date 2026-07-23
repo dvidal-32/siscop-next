@@ -66,9 +66,11 @@ export class EngineeringEngineService {
       const value = inputVariables[variable.name];
 
       if (variable.is_required && (value === undefined || value === null || value === '')) {
-        throw new BadRequestException(
-          `La variable requerida "${variable.label}" (${variable.name}) no tiene valor`,
-        );
+        if (variable.type !== 'COMPUTED') {
+          throw new BadRequestException(
+            `La variable requerida "${variable.label}" (${variable.name}) no tiene valor`,
+          );
+        }
       }
 
       if (variable.type === 'NUMBER') {
@@ -105,6 +107,34 @@ export class EngineeringEngineService {
       } else if (variable.type === 'STRING' || variable.type === 'LIST' || variable.type === 'FINISH_SELECTOR' || variable.type === 'ITEM_SELECTOR') {
         stringVariables[variable.name] = value ? String(value) : (variable.default_value || '');
         logs.push(`Variable ${variable.name} = ${stringVariables[variable.name]} (${variable.type})`);
+      }
+    }
+
+    // 2.5 Procesar variables computadas (COMPUTED)
+    for (const variable of template.variables) {
+      if (variable.type === 'COMPUTED') {
+        const userInput = inputVariables[variable.name];
+        
+        // Si el usuario proporcionó un valor manualmente, lo respetamos
+        if (userInput !== undefined && userInput !== null && userInput !== '') {
+          numericVariables[variable.name] = Number(userInput);
+          logs.push(`Variable ${variable.name} = ${numericVariables[variable.name]} (COMPUTED - Manual Override)`);
+        } 
+        // Si no hay valor y tiene fórmula, lo calculamos
+        else if ((variable as any).computation_formula) {
+          try {
+            const result = this.dslService.evaluateMath(
+              (variable as any).computation_formula,
+              numericVariables,
+            );
+            numericVariables[variable.name] = result;
+            logs.push(`Variable ${variable.name} = ${result} (COMPUTED via ${(variable as any).computation_formula})`);
+          } catch (error: any) {
+            throw new BadRequestException(
+              `Error evaluando fórmula de variable computada "${variable.name}": ${error.message}`,
+            );
+          }
+        }
       }
     }
 
@@ -352,6 +382,7 @@ export class EngineeringEngineService {
       templateName: template.name,
       templateCode: template.code,
       inputVariables,
+      evaluatedVariables: numericVariables,
       components: componentResults,
       totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
       

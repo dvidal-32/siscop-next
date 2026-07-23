@@ -10,7 +10,7 @@ export class UpdateVariableDto {
   @IsOptional()
   label?: string;
 
-  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN, LIST, FINISH_SELECTOR o ITEM_SELECTOR' })
+  @IsEnum(VariableType, { message: 'El tipo debe ser NUMBER, STRING, BOOLEAN, LIST, FINISH_SELECTOR, ITEM_SELECTOR o COMPUTED' })
   @IsOptional()
   type?: VariableType;
 
@@ -32,6 +32,10 @@ export class UpdateVariableDto {
 
   @IsOptional()
   listOptions?: any;
+
+  @IsString({ message: 'La fórmula computada debe ser una cadena de texto' })
+  @IsOptional()
+  computationFormula?: string;
 
   @IsInt({ message: 'El orden debe ser un número entero' })
   @Min(0, { message: 'El orden no puede ser menor que 0' })

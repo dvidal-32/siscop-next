@@ -137,10 +137,23 @@ export class SimulatorComponent implements OnInit {
 
     const values = this.variablesForm.value;
     try {
+      this.errorMessage.set(null);
       const result = await this.engineeringService.simulate(this.templateId(), values);
       this.simulationResult.set(result);
+      
+      // Auto-fill COMPUTED variables if user hasn't manually changed them
+      if (result.evaluatedVariables) {
+        for (const [key, value] of Object.entries(result.evaluatedVariables)) {
+          const control = this.variablesForm.get(key);
+          const isComputed = this.template()?.variables?.find((v: any) => v.name === key && v.type === 'COMPUTED');
+          if (control && isComputed && (!control.dirty || control.value === '' || control.value === null)) {
+            control.patchValue(value, { emitEvent: false });
+          }
+        }
+      }
     } catch (err: any) {
       console.error('Error corriendo simulación', err);
+      this.errorMessage.set(err?.error?.message || 'Error interno en la simulación');
     }
   }
 

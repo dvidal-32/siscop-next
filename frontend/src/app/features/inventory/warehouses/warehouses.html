@@ -1,0 +1,77 @@
+<p-toast></p-toast>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-6">
+  <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+    <div>
+      <h2 class="m-0 font-bold text-2xl text-slate-800 dark:text-white flex items-center gap-2">
+        <i class="pi pi-building text-indigo-500"></i> Bodegas (Almacenes)
+      </h2>
+      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">Gestiona las ubicaciones físicas de tu inventario.</p>
+    </div>
+    <p-button label="Nueva Bodega" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </div>
+
+  <p-table [value]="warehouses()" [loading]="isLoading()" [paginator]="true" [rows]="10" responsiveLayout="scroll" [rowHover]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="name">Nombre <p-sortIcon field="name"></p-sortIcon></th>
+        <th>Descripción</th>
+        <th class="text-center">Almacén Principal</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-warehouse>
+      <tr>
+        <td class="font-bold">{{ warehouse.name }}</td>
+        <td>{{ warehouse.description }}</td>
+        <td class="text-center">
+          <i class="pi" [ngClass]="{'pi-check-circle text-green-500': warehouse.is_main, 'pi-circle text-300': !warehouse.is_main}" style="font-size: 1.5rem"></i>
+        </td>
+        <td class="text-right">
+          <div class="flex gap-2 justify-end">
+            <p-button icon="pi pi-pencil" styleClass="p-button-rounded p-button-text p-button-sm hover:bg-slate-50 dark:hover:bg-slate-800/30 text-indigo-500" (onClick)="openEdit(warehouse)"></p-button>
+            <p-button icon="pi pi-trash" styleClass="p-button-rounded p-button-text p-button-danger p-button-sm hover:bg-rose-50 dark:hover:bg-rose-900/30" (onClick)="deleteWarehouse(warehouse)"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center p-4">No hay bodegas registradas. Crea una para comenzar.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Form -->
+<p-dialog [(visible)]="showModal" [modal]="true" [style]="{width: '450px'}" [header]="selectedWarehouse() ? 'Editar Bodega' : 'Nueva Bodega'" styleClass="p-fluid">
+  <form [formGroup]="warehouseForm" (ngSubmit)="save()">
+    <div class="field mt-4">
+      <label for="name" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Nombre de la Bodega <span class="text-rose-500">*</span></label>
+      <input type="text" pInputText id="name" formControlName="name" placeholder="Ej. Bodega Central" autofocus class="w-full" />
+      <small class="text-rose-500 mt-1 block" *ngIf="warehouseForm.get('name')?.invalid && warehouseForm.get('name')?.touched">
+        El nombre es requerido.
+      </small>
+    </div>
+
+    <div class="field mt-4">
+      <label for="description" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Descripción (Opcional)</label>
+      <input type="text" pInputText id="description" formControlName="description" placeholder="Ej. Almacén de materia prima principal" class="w-full" />
+    </div>
+
+    <div class="flex items-start gap-3 mt-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+      <p-checkbox formControlName="is_main" [binary]="true" inputId="is_main" styleClass="mt-1"></p-checkbox>
+      <label for="is_main" class="cursor-pointer">
+        <span class="font-semibold text-slate-700 dark:text-slate-300">Marcar como Almacén Principal</span>
+        <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Solo puede haber un almacén principal. Éste será el valor por defecto en los movimientos.
+        </div>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-slate-500" (onClick)="showModal.set(false)"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" [loading]="isSaving()" type="submit"></p-button>
+    </div>
+  </form>
+</p-dialog>

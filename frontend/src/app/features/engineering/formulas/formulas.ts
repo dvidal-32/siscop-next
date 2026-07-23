@@ -44,6 +44,7 @@ export class FormulasComponent implements OnInit {
     isRequired: [true],
     minValue: [null as number | null],
     maxValue: [null as number | null],
+    computationFormula: [''],
     order: [0],
     itemCategory: [''], // Para ITEM_SELECTOR
   });
@@ -159,6 +160,7 @@ export class FormulasComponent implements OnInit {
         isRequired: formVal.isRequired ?? true,
         minValue: formVal.minValue || undefined,
         maxValue: formVal.maxValue || undefined,
+        computationFormula: formVal.type === 'COMPUTED' ? formVal.computationFormula : undefined,
         order: formVal.order || 0,
         listOptions: formVal.type === 'ITEM_SELECTOR' && formVal.itemCategory ? { category: formVal.itemCategory } : undefined,
       };
@@ -202,6 +204,7 @@ export class FormulasComponent implements OnInit {
       isRequired: variable.is_required,
       minValue: variable.min_value !== null ? Number(variable.min_value) : null,
       maxValue: variable.max_value !== null ? Number(variable.max_value) : null,
+      computationFormula: variable.computation_formula || '',
       order: variable.order || 0,
       itemCategory: variable.type === 'ITEM_SELECTOR' && variable.list_options?.category ? variable.list_options.category : '',
     });

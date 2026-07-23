@@ -1,0 +1,302 @@
+<p-toast></p-toast>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-6">
+  <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+    <div>
+      <h2 class="m-0 font-bold text-2xl text-slate-800 dark:text-white flex items-center gap-2">
+        <i class="pi pi-shopping-cart text-indigo-500"></i> Órdenes de Compra
+      </h2>
+      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">Genera y gestiona pedidos de reabastecimiento a proveedores.</p>
+    </div>
+    <p-button label="Nueva Orden" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+  </div>
+
+  <p-table [value]="orders()" [loading]="isLoading()" [paginator]="true" [rows]="10" responsiveLayout="scroll" [rowHover]="true"
+           sortField="created_at" [sortOrder]="-1">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="code">Código <p-sortIcon field="code"></p-sortIcon></th>
+        <th pSortableColumn="created_at">Fecha <p-sortIcon field="created_at"></p-sortIcon></th>
+        <th>Proveedor</th>
+        <th>Bodega Destino</th>
+        <th pSortableColumn="status">Estado <p-sortIcon field="status"></p-sortIcon></th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-order>
+      <tr>
+        <td class="font-bold text-primary">{{ order.code }}</td>
+        <td>{{ order.created_at | date:'dd/MM/yyyy' }}</td>
+        <td>{{ order.supplier?.name }}</td>
+        <td>{{ order.warehouse?.name }}</td>
+        <td>
+          <p-tag [severity]="getSeverity(order.status)" [value]="translateStatus(order.status)"></p-tag>
+        </td>
+        <td class="text-right">
+          <div class="flex gap-2 justify-end">
+            <!-- Botón Editar -->
+            <p-button *ngIf="order.status === 'PENDING' || order.status === 'DRAFT'" icon="pi pi-pencil" styleClass="p-button-rounded p-button-text p-button-sm hover:bg-slate-50 dark:hover:bg-slate-800/30 text-indigo-500" pTooltip="Editar Orden" (onClick)="openEdit(order)"></p-button>
+            <!-- Botón Aprobar -->
+            <p-button *ngIf="order.status === 'PENDING' || order.status === 'DRAFT'" icon="pi pi-check" styleClass="p-button-rounded p-button-success p-button-text p-button-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/30" pTooltip="Aprobar Orden" (onClick)="updateStatus(order.id, 'APPROVED')"></p-button>
+            <!-- Botón Cancelar -->
+            <p-button *ngIf="order.status === 'PENDING' || order.status === 'DRAFT'" icon="pi pi-times" styleClass="p-button-rounded p-button-danger p-button-text p-button-sm hover:bg-rose-50 dark:hover:bg-rose-900/30" pTooltip="Cancelar Orden" (onClick)="updateStatus(order.id, 'CANCELLED')"></p-button>
+            <!-- Botón Recibir -->
+            <p-button *ngIf="order.status === 'APPROVED' || order.status === 'PARTIAL_RECEIPT'" icon="pi pi-box" styleClass="p-button-rounded p-button-info p-button-text p-button-sm hover:bg-sky-50 dark:hover:bg-sky-900/30 text-sky-500" pTooltip="Recibir Mercancía" (onClick)="openReceive(order)"></p-button>
+            <!-- Botón Ver Detalles -->
+            <p-button icon="pi pi-eye" styleClass="p-button-rounded p-button-secondary p-button-text p-button-sm hover:bg-slate-50 dark:hover:bg-slate-800/30" pTooltip="Ver Detalles" (onClick)="viewDetails(order)"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-4">No hay órdenes de compra registradas.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Form -->
+<p-dialog [(visible)]="showModal" [modal]="true" [style]="{width: '850px'}" [header]="editingId() ? 'Editar Orden de Compra' : 'Generar Orden de Compra'" styleClass="p-fluid">
+  <form [formGroup]="poForm" (ngSubmit)="save()">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div class="field">
+        <label class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Proveedor <span class="text-rose-500">*</span></label>
+        <p-select [options]="suppliers()" formControlName="supplier_id" placeholder="Seleccione proveedor" [filter]="true" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+      <div class="field">
+        <label class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Bodega Destino <span class="text-rose-500">*</span></label>
+        <p-select [options]="warehouses()" formControlName="warehouse_id" placeholder="Seleccione bodega" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+    </div>
+
+    <!-- Dynamic Items Array -->
+    <div formArrayName="items" class="mt-8">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+        <label class="font-semibold text-lg text-slate-800 dark:text-white">Materiales Solicitados</label>
+        <p-button label="Agregar Material" icon="pi pi-plus" styleClass="p-button-sm" (onClick)="addItem()"></p-button>
+      </div>
+      
+      <div *ngIf="itemsArray.length === 0" class="text-center text-slate-500 dark:text-slate-400 py-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+        <i class="pi pi-inbox text-3xl mb-2 block opacity-50"></i>
+        No has agregado ningún artículo a la orden.
+      </div>
+
+      <div *ngFor="let itemForm of itemsArray.controls; let i = index" [formGroupName]="i" class="flex flex-col md:flex-row gap-4 items-end mb-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div class="flex-grow w-full md:w-auto">
+          <label class="text-sm font-semibold block mb-2 text-slate-700 dark:text-slate-300">Artículo <span class="text-rose-500">*</span></label>
+          <p-select [options]="catalogItems()" formControlName="catalog_item_id" placeholder="Buscar material..." [filter]="true" appendTo="body" styleClass="w-full"></p-select>
+        </div>
+        <div class="w-full md:w-28">
+          <label class="text-sm font-semibold block mb-2 text-slate-700 dark:text-slate-300">Cantidad <span class="text-rose-500">*</span></label>
+          <p-inputNumber formControlName="quantity" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" locale="es-DO" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
+        </div>
+        <div class="w-full md:w-36">
+          <label class="text-sm font-semibold block mb-2 text-slate-700 dark:text-slate-300">Precio Unitario</label>
+          <p-inputNumber formControlName="unit_price" mode="currency" currency="DOP" locale="es-DO" [min]="0" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
+        </div>
+        <div class="w-full md:w-36 flex flex-col justify-end">
+          <label class="text-sm font-semibold block mb-2 text-slate-700 dark:text-slate-300">Subtotal</label>
+          <div class="h-[42px] flex items-center px-3 bg-slate-200/50 dark:bg-slate-900/50 rounded-lg font-semibold text-slate-700 dark:text-slate-300 truncate">
+            {{ (itemForm.get('quantity')?.value || 0) * (itemForm.get('unit_price')?.value || 0) | currency }}
+          </div>
+        </div>
+        <div class="flex items-center pb-1">
+          <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-rounded" (onClick)="removeItem(i)"></p-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field mt-6">
+      <label for="notes" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Notas Adicionales</label>
+      <input type="text" pInputText id="notes" formControlName="notes" placeholder="Condiciones, tiempo de entrega, etc." class="w-full" />
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+      <div class="flex flex-col md:flex-row justify-end gap-6 items-end">
+        <div class="text-right">
+          <label class="text-sm font-semibold text-slate-500 mb-1 block">Subtotal</label>
+          <div class="text-lg font-semibold text-slate-700 dark:text-slate-300">{{ formSubtotal | currency }}</div>
+        </div>
+        <div class="field mb-0 w-full md:w-40">
+          <label class="text-sm font-semibold text-slate-500 mb-1 block">Descuento</label>
+          <p-inputNumber formControlName="discount" mode="currency" currency="DOP" locale="es-DO" [min]="0" styleClass="w-full" inputStyleClass="w-full p-inputtext-sm"></p-inputNumber>
+        </div>
+        <div class="field mb-0 w-full md:w-40">
+          <label class="text-sm font-semibold text-slate-500 mb-1 block">Impuestos</label>
+          <p-inputNumber formControlName="tax" mode="currency" currency="DOP" locale="es-DO" [min]="0" styleClass="w-full" inputStyleClass="w-full p-inputtext-sm"></p-inputNumber>
+        </div>
+        <div class="text-right pl-4 md:border-l border-slate-200 dark:border-slate-700 w-full md:w-auto flex flex-col md:block">
+          <label class="text-sm font-bold text-slate-800 dark:text-white mb-1 block">Total Final</label>
+          <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ formTotal | currency }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-slate-500" (onClick)="showModal.set(false)"></p-button>
+      <p-button label="Generar Orden" icon="pi pi-check" [loading]="isSaving()" type="submit"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Modal Recibir Mercancía -->
+<p-dialog [(visible)]="showReceiveModal" [modal]="true" [style]="{width: '750px', 'min-height': '450px'}" header="Recibir Mercancía" styleClass="p-fluid">
+  <form [formGroup]="receiveForm" (ngSubmit)="saveReceive()">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div class="field">
+        <label for="invoice_number" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Nº de Factura / Remisión <span class="text-rose-500">*</span></label>
+        <input type="text" pInputText id="invoice_number" formControlName="invoice_number" placeholder="Ej. F-12345" class="w-full" />
+      </div>
+      <div class="field">
+        <label for="invoice_date" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Fecha de Factura <span class="text-rose-500">*</span></label>
+        <input type="date" pInputText id="invoice_date" formControlName="invoice_date" class="w-full" />
+      </div>
+    </div>
+
+    <div class="field mt-4">
+      <label for="notes_receive" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Notas Adicionales</label>
+      <textarea id="notes_receive" pInputTextarea formControlName="notes" rows="2" class="w-full" placeholder="Observaciones sobre la recepción..."></textarea>
+    </div>
+
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">Artículos a Recibir</h3>
+      
+      <div formArrayName="items" class="space-y-4">
+        <div *ngFor="let itemCtrl of receiveItemsArray.controls; let i = index" [formGroupName]="i" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+          
+          <div class="md:col-span-4 field mb-0">
+            <label class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Artículo</label>
+            <input type="text" pInputText formControlName="item_name" [readonly]="true" class="w-full bg-slate-100 dark:bg-slate-900 border-none" />
+          </div>
+
+          <div class="md:col-span-3 field mb-0">
+            <label class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Cantidad Recibida <span class="text-rose-500">*</span></label>
+            <p-inputNumber formControlName="quantity_received" [min]="0.01" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" locale="es-DO" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
+          </div>
+
+          <div class="md:col-span-5 field mb-0">
+            <label class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Bodega Destino <span class="text-rose-500">*</span></label>
+            <p-select [options]="warehouses()" formControlName="warehouse_id" placeholder="Selecciona..." [filter]="true" filterBy="label" appendTo="body" styleClass="w-full"></p-select>
+          </div>
+        </div>
+        
+        <div *ngIf="receiveItemsArray.length === 0" class="text-center p-4 text-slate-500">
+          Todos los artículos de esta orden ya han sido recibidos.
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text p-button-secondary" (onClick)="showReceiveModal.set(false)"></p-button>
+      <p-button label="Guardar Recepción" icon="pi pi-save" type="submit" [loading]="isSaving()" styleClass="bg-indigo-600 hover:bg-indigo-700 border-none"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Modal Detalles de Orden -->
+<p-dialog [(visible)]="showDetailsModal" [modal]="true" [style]="{width: '800px', 'max-height': '90vh'}" header="Detalles de Orden de Compra" styleClass="p-fluid">
+  <div *ngIf="detailsOrder()" class="space-y-6">
+    
+    <!-- Cabecera de Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-100 dark:border-slate-700">
+      <div>
+        <p class="text-sm text-slate-500 mb-1">Código</p>
+        <p class="font-bold text-lg text-slate-800 dark:text-white">{{ detailsOrder().code }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500 mb-1">Estado</p>
+        <p-tag [severity]="getSeverity(detailsOrder().status)" [value]="translateStatus(detailsOrder().status)"></p-tag>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500 mb-1">Fecha de Creación</p>
+        <p class="font-semibold text-slate-800 dark:text-slate-200">{{ detailsOrder().created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+    </div>
+
+    <!-- Proveedor y Notas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-md font-semibold text-slate-800 dark:text-white mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Proveedor</h3>
+        <p class="font-medium">{{ detailsOrder().supplier?.name }}</p>
+        <p class="text-sm text-slate-500 mt-1" *ngIf="detailsOrder().supplier?.contact_name">Contacto: {{ detailsOrder().supplier?.contact_name }}</p>
+      </div>
+      <div *ngIf="detailsOrder().notes">
+        <h3 class="text-md font-semibold text-slate-800 dark:text-white mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Notas</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-100 dark:border-yellow-900/50">
+          {{ detailsOrder().notes }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Tabla de Artículos -->
+    <div>
+      <h3 class="text-md font-semibold text-slate-800 dark:text-white mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Artículos Solicitados</h3>
+      <p-table [value]="detailsOrder().items" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Artículo</th>
+            <th class="text-right">Cantidad Solicitada</th>
+            <th class="text-right">Cantidad Recibida</th>
+            <th class="text-right">Precio Unitario</th>
+            <th class="text-right">Subtotal</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>{{ item.catalog_item?.name }} <span class="text-xs text-slate-400 block">{{ item.catalog_item?.code }}</span></td>
+            <td class="text-right font-semibold">{{ item.quantity }}</td>
+            <td class="text-right">
+              <span [class]="item.received_quantity >= item.quantity ? 'text-emerald-500 font-bold' : (item.received_quantity > 0 ? 'text-blue-500' : 'text-slate-400')">
+                {{ item.received_quantity }}
+              </span>
+            </td>
+            <td class="text-right">{{ item.unit_price | currency }}</td>
+            <td class="text-right font-medium">{{ item.total_price | currency }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr>
+            <td colspan="4" class="text-right font-bold text-slate-500">Subtotal:</td>
+            <td class="text-right font-semibold">{{ detailsOrder().subtotal | currency }}</td>
+          </tr>
+          <tr>
+            <td colspan="4" class="text-right font-bold text-slate-500">Descuento:</td>
+            <td class="text-right font-semibold text-rose-500">-{{ detailsOrder().discount | currency }}</td>
+          </tr>
+          <tr>
+            <td colspan="4" class="text-right font-bold text-slate-500">Impuestos:</td>
+            <td class="text-right font-semibold text-sky-500">{{ detailsOrder().tax | currency }}</td>
+          </tr>
+          <tr>
+            <td colspan="4" class="text-right font-black text-lg">Total Orden:</td>
+            <td class="text-right font-black text-xl text-indigo-600 dark:text-indigo-400">{{ detailsOrder().total | currency }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Historial de Recepciones -->
+    <div *ngIf="detailsOrder().receipts && detailsOrder().receipts.length > 0" class="mt-8">
+      <h3 class="text-md font-semibold text-slate-800 dark:text-white mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Historial de Recepciones</h3>
+      <div class="space-y-3">
+        <div *ngFor="let receipt of detailsOrder().receipts" class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-medium text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="pi pi-receipt text-indigo-500"></i> Factura/Remisión: {{ receipt.invoice_number || 'N/A' }}
+            </span>
+            <span class="text-sm text-slate-500">{{ receipt.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-400" *ngIf="receipt.notes">{{ receipt.notes }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="flex justify-end mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+    <p-button label="Cerrar" icon="pi pi-times" styleClass="p-button-text p-button-secondary" (onClick)="showDetailsModal.set(false)"></p-button>
+  </div>
+</p-dialog>

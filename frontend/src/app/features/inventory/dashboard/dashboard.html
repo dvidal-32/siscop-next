@@ -1,0 +1,129 @@
+<p-toast></p-toast>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <!-- Total Items Card -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex items-center h-full transition-transform hover:-translate-y-1 duration-300">
+    <div class="mr-4">
+      <div class="flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 rounded-xl w-14 h-14">
+        <i class="pi pi-box text-indigo-600 dark:text-indigo-400 text-2xl"></i>
+      </div>
+    </div>
+    <div>
+      <span class="block text-slate-500 dark:text-slate-400 font-medium mb-1 text-sm uppercase tracking-wider">Total Materiales</span>
+      <div class="text-slate-900 dark:text-white font-bold text-3xl">{{ totalItems() }}</div>
+    </div>
+  </div>
+  
+  <!-- Low Stock Card -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex items-center h-full transition-transform hover:-translate-y-1 duration-300">
+    <div class="mr-4">
+      <div class="flex items-center justify-center bg-rose-100 dark:bg-rose-900/40 rounded-xl w-14 h-14">
+        <i class="pi pi-exclamation-triangle text-rose-600 dark:text-rose-400 text-2xl"></i>
+      </div>
+    </div>
+    <div>
+      <span class="block text-slate-500 dark:text-slate-400 font-medium mb-1 text-sm uppercase tracking-wider">Stock Crítico</span>
+      <div class="text-rose-600 dark:text-rose-400 font-bold text-3xl">{{ lowStockCount() }}</div>
+    </div>
+  </div>
+
+  <!-- Value Card -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 flex items-center h-full transition-transform hover:-translate-y-1 duration-300">
+    <div class="mr-4">
+      <div class="flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 rounded-xl w-14 h-14">
+        <i class="pi pi-dollar text-emerald-600 dark:text-emerald-400 text-2xl"></i>
+      </div>
+    </div>
+    <div>
+      <span class="block text-slate-500 dark:text-slate-400 font-medium mb-1 text-sm uppercase tracking-wider">Valor Inventario</span>
+      <div class="text-slate-900 dark:text-white font-bold text-3xl">{{ totalValue() | currency }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-6">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 gap-4">
+    <div>
+      <h2 class="m-0 font-bold text-2xl text-slate-800 dark:text-white flex items-center gap-2">
+        <i class="pi pi-list text-indigo-500"></i> Control de Stock
+      </h2>
+      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">Monitorea y configura los niveles actuales de inventario por almacén.</p>
+    </div>
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <p-select [options]="statusOptions" [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event); dt.filter($event, 'status_label', 'equals')" [showClear]="true" placeholder="Filtrar estado..." styleClass="w-40"></p-select>
+      <p-iconfield iconPosition="left">
+        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+        <input type="text" pInputText placeholder="Buscar artículo o bodega..." (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+      </p-iconfield>
+    </div>
+  </div>
+
+  <p-table #dt [value]="items()" [loading]="isLoading()" [paginator]="true" [rows]="10" responsiveLayout="scroll" [rowHover]="true" 
+           sortField="current_stock" [sortOrder]="1" [globalFilterFields]="['catalog_item.name', 'catalog_item.code', 'warehouse.name']"
+           styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="catalog_item.name">Material <p-sortIcon field="catalog_item.name"></p-sortIcon></th>
+        <th pSortableColumn="warehouse.name">Bodega <p-sortIcon field="warehouse.name"></p-sortIcon></th>
+        <th>Costo Und.</th>
+        <th pSortableColumn="current_stock">Stock Actual <p-sortIcon field="current_stock"></p-sortIcon></th>
+        <th>Mínimo / Máximo</th>
+        <th class="text-center">Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td class="font-bold">
+          {{ item.catalog_item?.name }}
+          <div class="text-sm font-normal text-color-secondary">{{ item.catalog_item?.code }}</div>
+        </td>
+        <td>{{ item.warehouse?.name }}</td>
+        <td>{{ item.catalog_item?.cost | currency }}</td>
+        <td class="font-bold">{{ item.current_stock }} {{ item.catalog_item?.unit }}</td>
+        <td>{{ item.stock_min }} / {{ item.stock_max }}</td>
+        <td class="text-center">
+          <p-tag [severity]="getSeverity(item)" 
+                 [value]="getSeverity(item) === 'danger' ? 'Agotado' : (getSeverity(item) === 'warn' ? 'Bajo' : 'Óptimo')">
+          </p-tag>
+        </td>
+        <td class="text-right">
+          <p-button icon="pi pi-sliders-h" styleClass="p-button-rounded p-button-text p-button-sm text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" pTooltip="Configurar Límites" (onClick)="openMinMax(item)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center p-4">No hay artículos en el inventario.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Configurar Min/Max -->
+<p-dialog [(visible)]="showMinMaxModal" [modal]="true" [style]="{width: '450px'}" header="Configurar Alertas de Stock" styleClass="p-fluid">
+  <div *ngIf="selectedItem()" class="mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+    <div class="font-bold text-lg text-slate-800 dark:text-white mb-1">{{ selectedItem().catalog_item?.name }}</div>
+    <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+      <i class="pi pi-building text-sm"></i> {{ selectedItem().warehouse?.name }}
+    </div>
+  </div>
+
+  <form [formGroup]="minMaxForm" (ngSubmit)="saveMinMax()">
+    <div class="grid grid-cols-2 gap-4 mt-2">
+      <div class="field">
+        <label for="stock_min" class="font-semibold text-rose-500 mb-2 block text-sm">Stock Mínimo (Alerta)</label>
+        <p-inputNumber id="stock_min" formControlName="stock_min" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" locale="es-DO" inputStyleClass="w-full"></p-inputNumber>
+      </div>
+      <div class="field">
+        <label for="stock_max" class="font-semibold text-emerald-500 mb-2 block text-sm">Stock Máximo (Tope)</label>
+        <p-inputNumber id="stock_max" formControlName="stock_max" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" locale="es-DO" inputStyleClass="w-full"></p-inputNumber>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-slate-500" (onClick)="showMinMaxModal.set(false)"></p-button>
+      <p-button label="Guardar Límites" icon="pi pi-check" [loading]="isSaving()" type="submit"></p-button>
+    </div>
+  </form>
+</p-dialog>

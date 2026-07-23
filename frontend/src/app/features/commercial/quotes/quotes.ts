@@ -200,30 +200,50 @@ export class QuotesComponent implements OnInit {
       if (!p || !p.template_id) continue;
       
       const tmpl = this.templates().find(t => t.id === p.template_id);
-      if (tmpl && tmpl.pricing_method !== 'area') {
+      if (tmpl) {
         const vars = { ...(p.variables || {}) };
         vars['ANCHO'] = Number(p.width);
         vars['ALTO'] = Number(p.height);
         vars['W'] = Number(p.width);
         vars['H'] = Number(p.height);
-        vars['CUERPOS'] = Number(p.bodies || 1);
-        
         const originalVarName = this.bodiesVarNameMap()[i];
-        if (originalVarName) {
-          vars[originalVarName] = Number(p.bodies || 1);
+        const control = this.productsArray.at(i).get('bodies');
+        const bVar = tmpl.variables?.find((v: any) => v.name === originalVarName);
+        console.log(`[Quote Sim] Item ${i}: originalVarName=${originalVarName}, bVar=`, bVar?.name, bVar?.type, `dirty=${control?.dirty}, value=${control?.value}`);
+
+        if (bVar && bVar.type === 'COMPUTED' && control && (!control.dirty || control.value === '' || control.value === null)) {
+          // Es calculada y el usuario no la ha forzado: dejamos que el backend la calcule.
+          console.log(`[Quote Sim] Skipping sending manual CUERPOS for item ${i} because it is COMPUTED.`);
+        } else {
+          vars['CUERPOS'] = Number(p.bodies || 1);
+          if (originalVarName) {
+            vars[originalVarName] = Number(p.bodies || 1);
+          }
         }
 
         try {
-          // Usar el servicio de ingeniería para simular
+          // Usar el servicio de ingeniería para simular SIEMPRE (para obtener variables computadas y desglose)
           const tenantId = this.tenantData()?.id;
           const res = await this.engineeringService.simulate(p.template_id, vars);
+          console.log(`[Quote Sim] Item ${i} result:`, res);
           if (res && res.totalMaterialCost !== undefined) {
-             newPrices[i] = res.totalMaterialCost * margin;
+             if (tmpl.pricing_method !== 'area') {
+               newPrices[i] = res.totalMaterialCost * margin;
+             } else {
+               newPrices[i] = null; // El precio se calcula en calculateTotals
+             }
+             
+             if (bVar && bVar.type === 'COMPUTED' && res.evaluatedVariables && res.evaluatedVariables[originalVarName] !== undefined) {
+               console.log(`[Quote Sim] Patching item ${i} with evaluated CUERPOS:`, res.evaluatedVariables[originalVarName]);
+               if (control && (!control.dirty || control.value === '' || control.value === null)) {
+                 control.patchValue(res.evaluatedVariables[originalVarName], { emitEvent: false });
+               }
+             }
           } else {
-             newPrices[i] = null;
+             if (tmpl.pricing_method !== 'area') newPrices[i] = null;
           }
         } catch (e) {
-          newPrices[i] = null;
+          if (tmpl.pricing_method !== 'area') newPrices[i] = null;
         }
       }
     }

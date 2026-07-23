@@ -68,6 +68,11 @@ model Tenant {
   clients                Client[]
   projects               Project[]
   quotes                 Quote[]
+  suppliers              Supplier[]
+  warehouses             Warehouse[]
+  inventory_items        InventoryItem[]
+  inventory_movements    InventoryMovement[]
+  purchase_orders        PurchaseOrder[]
 
   @@index([status])
   @@index([plan_id])
@@ -97,6 +102,7 @@ model User {
   roles               UserRole[]
   refresh_tokens      RefreshToken[]
   audit_logs          AuditLog[]
+  inventory_movements InventoryMovement[]
 
   @@index([tenant_id])
   @@index([email])
@@ -371,6 +377,8 @@ model CatalogItem {
   type             String         // profile, glass, accessory, supply
   unit             String         // m, m2, u, kg, etc.
   cost             Decimal        @db.Decimal(10, 2)
+  last_cost        Decimal?       @db.Decimal(10, 2)
+  average_cost     Decimal?       @db.Decimal(10, 2)
   price_1          Decimal?       @db.Decimal(10, 2)
   price_2          Decimal?       @db.Decimal(10, 2)
   price_3          Decimal?       @db.Decimal(10, 2)
@@ -404,6 +412,10 @@ model CatalogItem {
   // Relación inversa con Cotizaciones
   quoted_products QuotedProduct[]
 
+  // Relaciones inversas de Inventario y Compras
+  inventory_items      InventoryItem[]
+  purchase_order_items PurchaseOrderItem[]
+
   @@unique([tenant_id, code])
   @@index([tenant_id])
   @@index([type])
@@ -434,6 +446,7 @@ enum VariableType {
   LIST
   FINISH_SELECTOR
   ITEM_SELECTOR
+  COMPUTED
 }
 
 enum ComponentType {
@@ -520,6 +533,7 @@ model EngineeringVariable {
   min_value     Decimal?     @db.Decimal(10, 2)
   max_value     Decimal?     @db.Decimal(10, 2)
   list_options  Json?        // Solo para tipo LIST: ["Opción1", "Opción2"]
+  computation_formula String? // Solo para tipo COMPUTED: Fórmula para calcular la variable
   order         Int          @default(0)
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -748,3 +762,157 @@ model QuotedProduct {
   @@index([template_id])
   @@map("quoted_products")
 }
+
+// ──────────────────────────────────────────────
+// MÓDULO DE INVENTARIO Y COMPRAS (FASE 1)
+// ──────────────────────────────────────────────
+
+model Supplier {
+  id           String     @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant     @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name         String
+  tax_id       String?
+  contact_name String?
+  email        String?
+  phone        String?
+  address      String?
+  is_active    Boolean    @default(true)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+
+  purchase_orders PurchaseOrder[]
+
+  @@index([tenant_id])
+  @@map("suppliers")
+}
+
+model Warehouse {
+  id          String   @id @default(uuid())
+  tenant_id   String
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  is_main     Boolean  @default(false)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  inventory_items  InventoryItem[]
+  purchase_orders PurchaseOrder[]
+
+  @@index([tenant_id])
+  @@map("warehouses")
+}
+
+model InventoryItem {
+  id              String      @id @default(uuid())
+  tenant_id       String
+  tenant          Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  warehouse_id    String
+  warehouse       Warehouse   @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
+  catalog_item_id String
+  catalog_item    CatalogItem @relation(fields: [catalog_item_id], references: [id], onDelete: Cascade)
+  current_stock   Decimal     @default(0.0) @db.Decimal(10, 2)
+  stock_min       Decimal     @default(0.0) @db.Decimal(10, 2)
+  stock_max       Decimal     @default(0.0) @db.Decimal(10, 2)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  movements       InventoryMovement[]
+
+  @@unique([warehouse_id, catalog_item_id])
+  @@index([tenant_id])
+  @@index([catalog_item_id])
+  @@map("inventory_items")
+}
+
+model InventoryMovement {
+  id                      String   @id @default(uuid())
+  tenant_id               String
+  tenant                  Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  inventory_item_id       String
+  inventory_item          InventoryItem @relation(fields: [inventory_item_id], references: [id], onDelete: Cascade)
+  type                    String   // ENTRADA, SALIDA, AJUSTE, TRASLADO, PRODUCCION, DEVOLUCION_CLIENTE, DEVOLUCION_PROVEEDOR
+  quantity                Decimal  @db.Decimal(10, 2) // Positivo para entradas, negativo para salidas
+  date                    DateTime @default(now())
+  reference_id            String?  // Ej. ID de Orden de Compra, ID de Factura, etc.
+  supplier_invoice_number String?
+  notes                   String?
+  user_id                 String?
+  user                    User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  
+  receipt_id              String?
+  receipt                 PurchaseOrderReceipt? @relation(fields: [receipt_id], references: [id], onDelete: SetNull)
+
+  created_at              DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([inventory_item_id])
+  @@index([receipt_id])
+  @@map("inventory_movements")
+}
+
+model PurchaseOrder {
+  id           String   @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  supplier_id  String
+  supplier     Supplier @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  code         String   // Ej. OC-2026-001
+  warehouse_id String?
+  warehouse    Warehouse? @relation(fields: [warehouse_id], references: [id], onDelete: SetNull)
+  status       String   @default("DRAFT") // DRAFT, APPROVED, SENT, PARTIAL_RECEIPT, COMPLETED, CANCELLED
+  subtotal     Decimal  @default(0.0) @db.Decimal(12, 2)
+  discount     Decimal  @default(0.0) @db.Decimal(12, 2)
+  tax          Decimal  @default(0.0) @db.Decimal(12, 2)
+  total        Decimal  @default(0.0) @db.Decimal(12, 2)
+  notes        String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  created_by   String?
+  updated_by   String?
+
+  items        PurchaseOrderItem[]
+  receipts     PurchaseOrderReceipt[]
+
+  @@unique([tenant_id, code])
+  @@index([tenant_id])
+  @@index([supplier_id])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id                String      @id @default(uuid())
+  purchase_order_id String
+  purchase_order    PurchaseOrder @relation(fields: [purchase_order_id], references: [id], onDelete: Cascade)
+  catalog_item_id   String
+  catalog_item      CatalogItem @relation(fields: [catalog_item_id], references: [id], onDelete: Cascade)
+  quantity          Decimal     @db.Decimal(10, 2)
+  received_quantity Decimal     @default(0.0) @db.Decimal(10, 2)
+  unit_price        Decimal     @default(0.0) @db.Decimal(12, 2)
+  total_price       Decimal     @default(0.0) @db.Decimal(12, 2)
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
+
+  @@index([purchase_order_id])
+  @@index([catalog_item_id])
+  @@map("purchase_order_items")
+}
+
+model PurchaseOrderReceipt {
+  id                String   @id @default(uuid())
+  purchase_order_id String
+  purchase_order    PurchaseOrder @relation(fields: [purchase_order_id], references: [id], onDelete: Cascade)
+  invoice_number    String?
+  invoice_date      DateTime?
+  notes             String?
+  created_at        DateTime @default(now())
+  created_by        String?
+  
+  movements         InventoryMovement[]
+
+  @@index([purchase_order_id])
+  @@map("purchase_order_receipts")
+}
+

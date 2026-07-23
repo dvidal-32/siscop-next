@@ -156,95 +156,96 @@
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-            <th class="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 min-w-[250px]">Artículo</th>
-            <th class="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider w-24">Tipo</th>
-            <th class="px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider w-20">Unid.</th>
-            <th class="px-4 py-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-32 text-right">Costo</th>
-            <th class="px-4 py-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-32 text-right">{{ priceName1() }}</th>
-            <th class="px-4 py-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-32 text-right">{{ priceName2() }}</th>
-            <th class="px-4 py-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-32 text-right">{{ priceName3() }}</th>
-            <th class="px-4 py-3 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-32 text-right">{{ priceName4() }}</th>
+            <th class="px-2 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 min-w-[250px]">Artículo</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider w-20">Tipo</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider w-16">Unid.</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-28 text-right">Costo</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-28 text-right">{{ priceName1() }}</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-28 text-right">{{ priceName2() }}</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-28 text-right">{{ priceName3() }}</th>
+            <th class="px-2 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider w-28 text-right">{{ priceName4() }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
           @for (item of filteredItems(); track item.id) {
             <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group" [class.bg-emerald-50]="modifiedItems().has(item.id)" [class.dark:bg-emerald-900/10]="modifiedItems().has(item.id)">
-              <td class="px-4 py-2 sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/90 transition-colors z-10 border-r border-slate-100 dark:border-slate-800"
+              <td class="px-2 py-0.5 sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/90 transition-colors z-10 border-r border-slate-100 dark:border-slate-800"
                   [class.bg-emerald-50]="modifiedItems().has(item.id)" [class.dark:bg-emerald-900/10]="modifiedItems().has(item.id)">
-                <div class="flex flex-col">
-                  <span class="font-semibold text-sm text-slate-800 dark:text-slate-200">{{ item.code }}</span>
-                  <span class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]" [title]="item.name">{{ item.name }}</span>
+                <div class="flex items-center max-w-[300px] truncate" [title]="item.code + ' - ' + item.name">
+                  <span class="font-semibold text-base text-slate-800 dark:text-slate-200">{{ item.code }}</span>
+                  <span class="text-slate-400 mx-1.5 text-base">-</span>
+                  <span class="text-base text-slate-600 dark:text-slate-400 truncate">{{ item.name }}</span>
                 </div>
               </td>
-              <td class="px-4 py-2 text-sm">
+              <td class="px-2 py-0.5 text-xs">
                 @if (item.type === 'profile') { <span class="text-sky-600 dark:text-sky-400">Perfil</span> }
                 @if (item.type === 'glass') { <span class="text-teal-600 dark:text-teal-400">Vidrio</span> }
                 @if (item.type === 'accessory') { <span class="text-fuchsia-600 dark:text-fuchsia-400">Accesorio</span> }
                 @if (item.type === 'supply') { <span class="text-orange-600 dark:text-orange-400">Insumo</span> }
               </td>
-              <td class="px-4 py-2 text-sm text-slate-500 dark:text-slate-400 uppercase">{{ item.unit }}</td>
+              <td class="px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400 uppercase">{{ item.unit }}</td>
               
               <!-- Cost Input -->
-              <td class="px-4 py-2 text-right">
+              <td class="px-2 py-0.5 text-right">
                 <div class="relative flex items-center justify-end">
-                  <span class="absolute left-3 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
+                  <span class="absolute left-2 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
                   <p-inputNumber 
                     [(ngModel)]="item.cost" 
                     (ngModelChange)="markAsModified(item.id)"
                     mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [locale]="currencyLocale()"
-                    [inputStyleClass]="'w-full max-w-[100px] pl-8 pr-2 py-1.5 bg-slate-50 dark:bg-slate-950/50 border rounded-lg text-sm text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
+                    [inputStyleClass]="'w-full max-w-[100px] h-6 pl-6 pr-2 py-0 bg-slate-50 dark:bg-slate-950/50 border rounded-md text-xs text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
                   ></p-inputNumber>
                 </div>
               </td>
 
               <!-- P1 Input -->
-              <td class="px-4 py-2 text-right">
+              <td class="px-2 py-0.5 text-right">
                 <div class="relative flex items-center justify-end">
-                  <span class="absolute left-3 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
+                  <span class="absolute left-2 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
                   <p-inputNumber 
                     [(ngModel)]="item.price_1" 
                     (ngModelChange)="markAsModified(item.id)"
                     mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [locale]="currencyLocale()"
-                    [inputStyleClass]="'w-full max-w-[100px] pl-8 pr-2 py-1.5 bg-slate-50 dark:bg-slate-950/50 border rounded-lg text-sm text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
+                    [inputStyleClass]="'w-full max-w-[100px] h-6 pl-6 pr-2 py-0 bg-slate-50 dark:bg-slate-950/50 border rounded-md text-xs text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
                   ></p-inputNumber>
                 </div>
               </td>
 
               <!-- P2 Input -->
-              <td class="px-4 py-2 text-right">
+              <td class="px-2 py-0.5 text-right">
                 <div class="relative flex items-center justify-end">
-                  <span class="absolute left-3 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
+                  <span class="absolute left-2 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
                   <p-inputNumber 
                     [(ngModel)]="item.price_2" 
                     (ngModelChange)="markAsModified(item.id)"
                     mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [locale]="currencyLocale()"
-                    [inputStyleClass]="'w-full max-w-[100px] pl-8 pr-2 py-1.5 bg-slate-50 dark:bg-slate-950/50 border rounded-lg text-sm text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
+                    [inputStyleClass]="'w-full max-w-[100px] h-6 pl-6 pr-2 py-0 bg-slate-50 dark:bg-slate-950/50 border rounded-md text-xs text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
                   ></p-inputNumber>
                 </div>
               </td>
 
               <!-- P3 Input -->
-              <td class="px-4 py-2 text-right">
+              <td class="px-2 py-0.5 text-right">
                 <div class="relative flex items-center justify-end">
-                  <span class="absolute left-3 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
+                  <span class="absolute left-2 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
                   <p-inputNumber 
                     [(ngModel)]="item.price_3" 
                     (ngModelChange)="markAsModified(item.id)"
                     mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [locale]="currencyLocale()"
-                    [inputStyleClass]="'w-full max-w-[100px] pl-8 pr-2 py-1.5 bg-slate-50 dark:bg-slate-950/50 border rounded-lg text-sm text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
+                    [inputStyleClass]="'w-full max-w-[100px] h-6 pl-6 pr-2 py-0 bg-slate-50 dark:bg-slate-950/50 border rounded-md text-xs text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
                   ></p-inputNumber>
                 </div>
               </td>
 
               <!-- P4 Input -->
-              <td class="px-4 py-2 text-right">
+              <td class="px-2 py-0.5 text-right">
                 <div class="relative flex items-center justify-end">
-                  <span class="absolute left-3 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
+                  <span class="absolute left-2 text-slate-400 dark:text-slate-500 text-xs">{{ currencySymbol() }}</span>
                   <p-inputNumber 
                     [(ngModel)]="item.price_4" 
                     (ngModelChange)="markAsModified(item.id)"
                     mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [locale]="currencyLocale()"
-                    [inputStyleClass]="'w-full max-w-[100px] pl-8 pr-2 py-1.5 bg-slate-50 dark:bg-slate-950/50 border rounded-lg text-sm text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
+                    [inputStyleClass]="'w-full max-w-[100px] h-6 pl-6 pr-2 py-0 bg-slate-50 dark:bg-slate-950/50 border rounded-md text-xs text-right text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-950 transition-all hover:border-slate-300 dark:hover:border-slate-700 ' + (modifiedItems().has(item.id) ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50' : 'border-slate-200 dark:border-slate-800')"
                   ></p-inputNumber>
                 </div>
               </td>

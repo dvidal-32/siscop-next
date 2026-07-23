@@ -1,0 +1,104 @@
+<p-toast></p-toast>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 mb-6">
+  <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+    <div>
+      <h2 class="m-0 font-bold text-2xl text-slate-800 dark:text-white flex items-center gap-2">
+        <i class="pi pi-history text-indigo-500"></i> Kardex de Movimientos
+      </h2>
+      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">Historial inmutable de entradas, salidas y ajustes de inventario.</p>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <div class="w-72">
+        <p-select [options]="inventoryItems()" [ngModel]="filterItemId()" (ngModelChange)="onFilterChange($event)" [showClear]="true" placeholder="Filtrar por material..." [filter]="true" filterBy="label" styleClass="w-full"></p-select>
+      </div>
+      
+      <div *ngIf="selectedItemBalance() !== null" class="bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800 flex flex-col items-center min-w-[120px]">
+        <span class="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold uppercase tracking-wider leading-none mb-1">Balance Actual</span>
+        <span class="text-xl font-black text-indigo-700 dark:text-indigo-300 leading-none">{{ selectedItemBalance() }}</span>
+      </div>
+
+      <p-button label="Registrar Movimiento" icon="pi pi-plus" (onClick)="openCreate()"></p-button>
+    </div>
+  </div>
+
+  <p-table [value]="filteredMovements()" [loading]="isLoading()" [paginator]="true" [rows]="15" responsiveLayout="scroll" [rowHover]="true"
+           sortField="date" [sortOrder]="tableSortOrder()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="date">Fecha <p-sortIcon field="date"></p-sortIcon></th>
+        <th pSortableColumn="inventory_item.catalog_item.name">Material <p-sortIcon field="inventory_item.catalog_item.name"></p-sortIcon></th>
+        <th>Bodega</th>
+        <th pSortableColumn="type">Tipo <p-sortIcon field="type"></p-sortIcon></th>
+        <th>Cantidad</th>
+        <th>Balance</th>
+        <th>Referencia / Notas</th>
+        <th>Usuario</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-mov>
+      <tr>
+        <td>{{ mov.date | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td class="font-bold">
+          {{ mov.inventory_item?.catalog_item?.name }}
+          <div class="text-sm font-normal text-color-secondary">{{ mov.inventory_item?.catalog_item?.code }}</div>
+        </td>
+        <td>{{ mov.inventory_item?.warehouse?.name }}</td>
+        <td>
+          <p-tag [severity]="getSeverity(mov.type)" [value]="mov.type"></p-tag>
+        </td>
+        <td class="font-bold" [ngClass]="{'text-green-500': mov.quantity > 0, 'text-red-500': mov.quantity < 0}">
+          {{ mov.quantity > 0 ? '+' : '' }}{{ mov.quantity }}
+        </td>
+        <td class="font-bold text-slate-700 dark:text-slate-300">
+          <span *ngIf="mov.running_balance !== null" [ngClass]="{'text-indigo-600 dark:text-indigo-400': true}">{{ mov.running_balance }}</span>
+          <span *ngIf="mov.running_balance === null" class="text-slate-400 text-xs italic" pTooltip="Filtre por un material para calcular el balance.">N/A</span>
+        </td>
+        <td>
+          <div *ngIf="mov.reference_id" class="text-sm text-500">Ref: {{ mov.reference_id }}</div>
+          <div>{{ mov.notes || '-' }}</div>
+        </td>
+        <td>{{ mov.user?.first_name }} {{ mov.user?.last_name }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="text-center p-4">No hay movimientos registrados en el Kardex.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Form -->
+<p-dialog [(visible)]="showModal" [modal]="true" [style]="{width: '500px'}" header="Registrar Movimiento Manual" styleClass="p-fluid">
+  <form [formGroup]="movementForm" (ngSubmit)="save()">
+    
+    <div class="field mt-4">
+      <label for="inventory_item_id" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Material y Bodega <span class="text-rose-500">*</span></label>
+      <p-select [options]="inventoryItems()" formControlName="inventory_item_id" placeholder="Seleccione un artículo" [filter]="true" filterBy="label" appendTo="body" styleClass="w-full"></p-select>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div class="field">
+        <label for="type" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Tipo de Movimiento <span class="text-rose-500">*</span></label>
+        <p-select [options]="movementTypes" formControlName="type" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+      <div class="field">
+        <label for="quantity" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Cantidad <span class="text-rose-500">*</span></label>
+        <p-inputNumber formControlName="quantity" [showButtons]="true" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" [min]="0.01" locale="es-DO" inputStyleClass="w-full" styleClass="w-full">
+        </p-inputNumber>
+      </div>
+    </div>
+
+    <div class="field mt-4">
+      <label for="notes" class="font-semibold block mb-2 text-slate-700 dark:text-slate-300">Notas / Motivo</label>
+      <input type="text" pInputText id="notes" formControlName="notes" placeholder="Ej. Material dañado" class="w-full" />
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-slate-500" (onClick)="showModal.set(false)"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" [loading]="isSaving()" type="submit"></p-button>
+    </div>
+  </form>
+</p-dialog>
