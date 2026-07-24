@@ -7,13 +7,13 @@ import { EngineeringService } from '../../../core/services/engineering.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { TenantCurrencyPipe } from '../../../core/pipes/tenant-currency.pipe';
-
 import { CatalogService } from '../../../core/services/catalog.service';
+import { FacadeBuilderComponent, CompositeQuoteItem } from './facade-builder.component';
 
 @Component({
   selector: 'app-quotes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, DecimalPipe, TenantCurrencyPipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, DecimalPipe, TenantCurrencyPipe, FacadeBuilderComponent],
   templateUrl: './quotes.html',
 })
 export class QuotesComponent implements OnInit {
@@ -53,6 +53,9 @@ export class QuotesComponent implements OnInit {
   showDetailModal = signal<boolean>(false);
   selectedQuote = signal<any | null>(null);
   selectedVersion = signal<any | null>(null);
+
+  // Facade Builder
+  showFacadeBuilder = signal<boolean>(false);
 
   quoteToPrint = signal<any | null>(null);
 
@@ -342,10 +345,112 @@ export class QuotesComponent implements OnInit {
   }
 
   // ──────────────────────────────────────────
+  // FACADE BUILDER
+  // ──────────────────────────────────────────  showFacadeBuilder = signal(false);
+  editingCompositeIndex = signal<number | null>(null);
+  editingCompositeData = signal<any | null>(null);
+
+  openFacadeBuilder() {
+    this.editingCompositeData.set(null);
+    this.editingCompositeIndex.set(null);
+    this.showFacadeBuilder.set(true);
+  }
+
+  editComposite(index: number) {
+    const group = this.productsArray.at(index);
+    if (!group || group.getRawValue()?.is_composite !== true) return;
+
+    const data = {
+      name: group.get('name')?.value || '',
+      widthMm: group.get('width')?.value || 3000,
+      heightMm: group.get('height')?.value || 2500,
+      notes: group.get('notes')?.value || '',
+      quantity: group.get('quantity')?.value || 1,
+      sub_components: group.getRawValue()?.sub_components || [],
+      total_estimated: group.getRawValue()?.composite_price || 0,
+    };
+    
+    this.editingCompositeData.set(data);
+    this.editingCompositeIndex.set(index);
+    this.showFacadeBuilder.set(true);
+  }
+
+  closeFacadeBuilder() {
+    this.showFacadeBuilder.set(false);
+  }
+
+  onCompositeReady(composite: CompositeQuoteItem) {
+    this.showFacadeBuilder.set(false);
+    
+    const index = this.editingCompositeIndex();
+
+    if (index !== null) {
+      const group = this.productsArray.at(index);
+      group.patchValue({
+        name: composite.name,
+        width: composite.widthMm,
+        height: composite.heightMm,
+        quantity: composite.quantity,
+        notes: composite.notes || '',
+        sub_components: composite.sub_components,
+        composite_price: composite.total_estimated,
+      });
+      this.triggerSimulation();
+    } else {
+      // Limpiar fila vacía por defecto si es la única
+      if (this.productsArray.length === 1) {
+        const first = this.productsArray.at(0);
+        if (first.get('item_type')?.value === 'template' && !first.get('template_id')?.value) {
+          this.productsArray.removeAt(0);
+        }
+      }
+
+      const group = this.fb.group({
+        item_type: ['composite', [Validators.required]],
+        template_id: [null],
+        catalog_item_id: [null],
+        catalog_finish_id: [''],
+        name: [composite.name, [Validators.required]],
+        width: [composite.widthMm, [Validators.required, Validators.min(1)]],
+        height: [composite.heightMm, [Validators.required, Validators.min(1)]],
+        bodies: [1],
+        quantity: [composite.quantity, [Validators.required, Validators.min(1)]],
+        notes: [composite.notes || ''],
+        variables: this.fb.group({}),
+        is_composite: [true],
+        sub_components: [composite.sub_components],
+        composite_price: [composite.total_estimated],
+      });
+
+      group.get('template_id')?.disable({ emitEvent: false });
+      group.get('catalog_item_id')?.disable({ emitEvent: false });
+      group.get('bodies')?.disable({ emitEvent: false });
+      group.get('width')?.disable({ emitEvent: false });
+      group.get('height')?.disable({ emitEvent: false });
+      group.get('is_composite')?.disable({ emitEvent: false });
+      group.get('sub_components')?.disable({ emitEvent: false });
+      group.get('composite_price')?.disable({ emitEvent: false });
+
+      this.productsArray.push(group);
+    }
+  }
+
+  getCompositeSubComponents(index: number): any[] {
+    const group = this.productsArray.at(index);
+    return group?.getRawValue()?.sub_components || [];
+  }
+
+  isCompositeItem(index: number): boolean {
+    const group = this.productsArray.at(index);
+    return group?.getRawValue()?.is_composite === true;
+  }
+
+  // ──────────────────────────────────────────
   // CREATE QUOTE
   // ──────────────────────────────────────────
 
   openCreate() {
+    this.errorMessage.set(null);
     this.isCreatingVersionFor.set(null);
     this.quoteForm.reset({
       project_id: this.filterProjectId() ?? '',
@@ -406,9 +511,60 @@ export class QuotesComponent implements OnInit {
     if (currentVer?.products) {
       for (let i = 0; i < currentVer.products.length; i++) {
         const prod = currentVer.products[i];
+        const itemType = prod.item_type || (prod.catalog_item_id ? 'catalog_item' : 'template');
+        
+        console.log('DEBUG: Cargando producto de cotizacion', {
+          id: prod.id,
+          name: prod.name,
+          item_type: prod.item_type,
+          itemType_evaluated: itemType,
+          is_composite: prod.is_composite,
+          components_length: prod.components?.length,
+          components: prod.components
+        });
+
+        if (itemType === 'composite') {
+          const subComps = (prod.components || []).map((c: any) => {
+            let layout = c.layout_data;
+            if (typeof layout === 'string') {
+              try { layout = JSON.parse(layout); } catch (e) { layout = {}; }
+            } else if (!layout) {
+              layout = {};
+            }
+            return {
+              id: c.id || Math.random().toString(36).substring(2, 9),
+              label: c.name,
+              elementType: layout.type || c.element_type || 'product',
+              itemType: c.item_type,
+              templateId: c.template_id,
+              catalogItemId: c.catalog_item_id,
+              imageUrl: layout.imageUrl || undefined,
+              widthMm: Number(layout.w) || Number(c.width) || 0,
+              heightMm: Number(layout.h) || Number(c.height) || 0,
+              xMm: Number(layout.x) || 0,
+              yMm: Number(layout.y) || 0,
+              variables: c.engineering_snapshot?.inputVariables || {},
+              notes: c.notes
+            };
+          });
+
+          const compositeItem: CompositeQuoteItem = {
+            name: prod.name,
+            widthMm: Number(prod.width) || 0,
+            heightMm: Number(prod.height) || 0,
+            quantity: Number(prod.quantity) || 1,
+            notes: prod.notes,
+            sub_components: subComps,
+            total_estimated: Number(prod.unit_price) || 0
+          };
+          
+          this.editingCompositeIndex.set(null);
+          this.onCompositeReady(compositeItem);
+          continue;
+        }
+
         this.addProduct();
         
-        const itemType = prod.item_type || (prod.catalog_item_id ? 'catalog_item' : 'template');
         this.productsArray.at(i).get('item_type')?.setValue(itemType);
 
         let catalogItemId = prod.catalog_item_id;
@@ -668,6 +824,10 @@ export class QuotesComponent implements OnInit {
     const group = this.productsArray.at(index);
     if (!group) return null;
     
+    if (group.getRawValue()?.is_composite === true || group.get('item_type')?.value === 'composite') {
+      return group.getRawValue()?.composite_price || 0;
+    }
+    
     if (group.get('item_type')?.value === 'catalog_item') {
       const catalogId = group.get('catalog_item_id')?.value;
       const item = this.catalogItems().find(it => it.id === catalogId);
@@ -675,8 +835,9 @@ export class QuotesComponent implements OnInit {
     }
 
     const templateId = group.get('template_id')?.value;
+    if (!templateId) return 0;
     const tmpl = this.templates().find(t => t.id === templateId);
-    if (!tmpl) return null;
+    if (!tmpl) return 0;
     
     if (tmpl.pricing_method === 'area') {
       const projectId = this.quoteForm.get('project_id')?.value;
@@ -700,6 +861,10 @@ export class QuotesComponent implements OnInit {
     if (!group) return null;
     const qty = group.get('quantity')?.value || 1;
     
+    if (group.getRawValue()?.is_composite === true || group.get('item_type')?.value === 'composite') {
+      return price * qty;
+    }
+    
     if (group.get('item_type')?.value === 'catalog_item') {
       const catalogId = group.get('catalog_item_id')?.value;
       const item = this.catalogItems().find(it => it.id === catalogId);
@@ -714,8 +879,9 @@ export class QuotesComponent implements OnInit {
     }
     
     const templateId = group.get('template_id')?.value;
+    if (!templateId) return 0;
     const tmpl = this.templates().find(t => t.id === templateId);
-    if (!tmpl) return null;
+    if (!tmpl) return 0;
 
     if (tmpl.pricing_method === 'area') {
       const area = this.getCalculatedArea(index);
@@ -827,8 +993,28 @@ export class QuotesComponent implements OnInit {
     }
   }
 
+  getInvalidControls(group: FormGroup | FormArray): string[] {
+    const invalid: string[] = [];
+    Object.keys(group.controls).forEach((key) => {
+      const control = (group.controls as any)[key];
+      if (control.invalid) {
+        if (control instanceof FormGroup || control instanceof FormArray) {
+          invalid.push(`${key} -> [${this.getInvalidControls(control).join(', ')}]`);
+        } else {
+          invalid.push(key);
+        }
+      }
+    });
+    return invalid;
+  }
+
   async saveQuote(printAfterSave: boolean = false) {
-    if (this.quoteForm.invalid) return;
+    if (this.quoteForm.invalid) {
+      this.quoteForm.markAllAsTouched();
+      const invalidFields = this.getInvalidControls(this.quoteForm);
+      this.errorMessage.set(`No se puede guardar. Hay campos requeridos vacíos o inválidos: ${invalidFields.join(', ')}`);
+      return;
+    }
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
@@ -841,6 +1027,43 @@ export class QuotesComponent implements OnInit {
         include_tax: raw.include_tax,
         payment_conditions: raw.payment_conditions,
         products: (raw.products || []).map((p: any, i: number) => {
+          // ── Manejo de ítem compuesto (Fachada) ──
+          if (p.item_type === 'composite' && p.is_composite) {
+            const subComps = (p.sub_components || []).map((cell: any, cellIdx: number) => ({
+              name: cell.label || cell.name || 'Elemento',
+              element_type: cell.elementType || 'product',
+              item_type: cell.itemType,
+              template_id: cell.templateId || null,
+              catalog_item_id: cell.catalogItemId || null,
+              width: cell.widthMm,
+              height: cell.heightMm,
+              quantity: 1,
+              notes: cell.notes || null,
+              variables: cell.variables || {},
+              layout_data: {
+                x: cell.xMm || 0,
+                y: cell.yMm || 0,
+                w: cell.widthMm,
+                h: cell.heightMm,
+                type: cell.elementType || 'product',
+                imageUrl: cell.imageUrl || null,
+                sort_order: cellIdx,
+              },
+              sort_order: cellIdx,
+            }));
+            return {
+              item_type: 'composite',
+              name: p.name,
+              width: Number(p.width) || 1,
+              height: Number(p.height) || 1,
+              quantity: Number(p.quantity) || 1,
+              notes: p.notes || null,
+              is_composite: true,
+              sub_components: subComps,
+              variables: {},
+            };
+          }
+
           const vars = { ...(p.variables || {}) };
           // Siempre enviamos CUERPOS para el motor de ventas minimas
           vars['CUERPOS'] = Number(p.bodies || 1);
@@ -903,6 +1126,7 @@ export class QuotesComponent implements OnInit {
         }),
       };
 
+
       let savedQuoteId: string | null = null;
       if (this.isCreatingVersionFor()) {
         await this.commercialService.createQuoteVersion(this.isCreatingVersionFor()!, payload);
@@ -949,6 +1173,28 @@ export class QuotesComponent implements OnInit {
       const currentVer = fullQuote.versions?.find((v: any) => v.is_current) || fullQuote.versions?.[0];
       if (currentVer && currentVer.products) {
         currentVer.subtotal_bruto = currentVer.products.reduce((acc: number, p: any) => acc + Number(p.total_price || 0), 0);
+        
+        // Preparar las coordenadas y datos de los esquemas de las fachadas para impresión
+        currentVer.products.forEach((p: any) => {
+          if (p.item_type === 'composite' && p.components) {
+            p.components.forEach((c: any) => {
+              let layout = c.layout_data;
+              if (typeof layout === 'string') {
+                try { layout = JSON.parse(layout); } catch (e) { layout = {}; }
+              } else if (!layout) {
+                layout = {};
+              }
+              c._print = {
+                xMm: Number(layout.x) || 0,
+                yMm: Number(layout.y) || 0,
+                widthMm: Number(layout.w) || Number(c.width) || 0,
+                heightMm: Number(layout.h) || Number(c.height) || 0,
+                type: layout.type || c.element_type || 'product',
+                imageUrl: layout.imageUrl || null
+              };
+            });
+          }
+        });
       }
 
       this.quoteToPrint.set(fullQuote);

@@ -186,6 +186,16 @@
         </svg>
       </button>
     </div>
+    
+    <!-- Modal Alert -->
+    <div *ngIf="errorMessage()"
+      class="m-6 mb-0 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm flex items-start gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 flex-shrink-0 mt-0.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      </svg>
+      <div>{{ errorMessage() }}</div>
+    </div>
+
     <form [formGroup]="quoteForm" (ngSubmit)="saveQuote()" (keydown.enter)="onEnter($event)" class="p-6 space-y-6">
       <!-- Form Header (Compact & Modern) -->
       <div
@@ -281,14 +291,26 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Productos</h3>
-          <button type="button" (click)="addProduct()"
-            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center gap-1 border-none bg-transparent cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-              stroke="currentColor" class="w-3.5 h-3.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" />
-            </svg>
-            Agregar producto
-          </button>
+          <div class="flex items-center gap-3">
+            <!-- Botón Agregar Fachada / Compuesto -->
+            <button type="button" (click)="openFacadeBuilder()"
+              class="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-500 flex items-center gap-1 border-none bg-transparent cursor-pointer font-semibold">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+              </svg>
+              🏗️ Añadir Fachada
+            </button>
+            <button type="button" (click)="addProduct()"
+              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center gap-1 border-none bg-transparent cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7-7H5" />
+              </svg>
+              Agregar producto
+            </button>
+          </div>
         </div>
 
         <div class="w-full overflow-x-auto custom-scrollbar pb-4">
@@ -312,8 +334,8 @@
               <div *ngFor="let product of productsArray.controls; let i = index" [formGroupName]="i"
                 class="group flex flex-col border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
 
-                <!-- Main Row -->
-                <div class="flex flex-nowrap gap-3 items-center p-2">
+                <!-- ── Fila Normal (template / catalog_item) ── -->
+                <div *ngIf="!isCompositeItem(i)" class="flex flex-nowrap gap-3 items-center p-2">
                   <!-- Tipo -->
                   <div class="w-28 shrink-0">
                     <select formControlName="item_type"
@@ -472,8 +494,68 @@
                   </div>
 
                 </div>
+
+                <!-- ── Fila Compuesta (Fachada) ── -->
+                <div *ngIf="isCompositeItem(i)" class="p-3">
+                  <div class="flex items-start gap-3">
+                    <!-- Badge tipo -->
+                    <div class="flex-shrink-0">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 border border-violet-200 dark:border-violet-700/50">
+                        🏗️ Fachada
+                      </span>
+                    </div>
+                    <!-- Info -->
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-sm text-slate-800 dark:text-slate-200">
+                        {{ productsArray.at(i).get('name')?.value }}
+                      </div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                        {{ productsArray.at(i).getRawValue().width }}mm × {{ productsArray.at(i).getRawValue().height }}mm
+                        · {{ productsArray.at(i).get('quantity')?.value }} unid.
+                      </div>
+                      <!-- Sub-componentes -->
+                      <div class="flex flex-wrap gap-1 mt-1.5">
+                        <span *ngFor="let comp of getCompositeSubComponents(i)"
+                          class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium"
+                          [class.bg-blue-100]="comp.elementType === 'product'"
+                          [class.text-blue-700]="comp.elementType === 'product'"
+                          [class.dark:bg-blue-900]="comp.elementType === 'product'"
+                          [class.dark:text-blue-300]="comp.elementType === 'product'"
+                          [class.bg-gray-100]="comp.elementType === 'divider'"
+                          [class.text-gray-600]="comp.elementType === 'divider'"
+                          [class.dark:bg-gray-800]="comp.elementType === 'divider'"
+                          [class.dark:text-gray-400]="comp.elementType === 'divider'">
+                          {{ comp.elementType === 'divider' ? '⬛' : '🪟' }}
+                          {{ comp.label || comp.name || 'Elemento' }}
+                          ({{ comp.widthMm }}×{{ comp.heightMm }}mm)
+                        </span>
+                      </div>
+                    </div>
+                    <!-- Acciones -->
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                      <div class="text-right">
+                        <div class="font-mono text-xs font-bold text-violet-600 dark:text-violet-400">
+                          ~Compuesto
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-mono">
+                          {{ productsArray.at(i).get('quantity')?.value }} unid.
+                        </div>
+                      </div>
+                      <button type="button" (click)="editComposite(i)"
+                        class="px-2 py-1.5 rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all border border-transparent text-[10px] font-bold uppercase tracking-wide cursor-pointer opacity-70 group-hover:opacity-100 mr-1">
+                        <i class="pi pi-pencil"></i> Editar
+                      </button>
+                      <button type="button" (click)="removeProduct(i)"
+                        class="px-2 py-1.5 rounded-md bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all border border-transparent text-[10px] font-bold uppercase tracking-wide cursor-pointer opacity-70 group-hover:opacity-100">
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -511,7 +593,7 @@
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" (click)="closeCreateModal()"
           class="px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium text-sm transition-all border-none cursor-pointer">Cancelar</button>
-        <button type="button" [disabled]="quoteForm.invalid || isSaving()" (click)="saveQuote(true)"
+        <button type="button" [disabled]="isSaving()" (click)="saveQuote(true)"
           class="px-5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-4 h-4">
@@ -520,13 +602,22 @@
           </svg>
           Guardar e Imprimir
         </button>
-        <button type="button" [disabled]="quoteForm.invalid || isSaving()" (click)="saveQuote(false)"
+        <button type="button" [disabled]="isSaving()" (click)="saveQuote(false)"
           class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all border-none cursor-pointer disabled:opacity-60">
           {{ isSaving() ? 'Calculando...' : 'Guardar Cotización' }}
         </button>
       </div>
     </form>
   </div>
+
+  <!-- ══ FACADE BUILDER MODAL (Anidado para heredar z-index) ═══════════════ -->
+  <app-facade-builder
+    *ngIf="showFacadeBuilder()"
+    [margin]="quoteForm.get('margin')?.value || 1.3"
+    [initialState]="editingCompositeData()"
+    (compositeReady)="onCompositeReady($event)"
+    (cancelled)="closeFacadeBuilder()">
+  </app-facade-builder>
 </div>
 
 <!-- Quote Detail Modal -->
@@ -905,8 +996,44 @@
                 </tbody>
               </table>
             </div>
-            <!-- Divider Line indicating end of quote -->
             <div class="border-t border-slate-300 w-full mb-6 mt-2"></div>
+
+            <!-- Esquemas de Fachada -->
+            <ng-container *ngFor="let ver of pQuote.versions">
+              <ng-container *ngIf="ver.is_current">
+                <ng-container *ngFor="let prod of ver.products; let prodIdx = index">
+                  <div *ngIf="prod.item_type === 'composite' && prod.components?.length > 0" class="mb-10" style="page-break-inside: avoid; break-inside: avoid;">
+                    <h3 class="font-bold text-sm text-slate-800 mb-2 uppercase tracking-wide border-b border-slate-300 pb-1">
+                      Diseño: {{ prod.name || 'Fachada' }} ({{ prod.width }}mm × {{ prod.height }}mm)
+                    </h3>
+                    <div class="flex justify-center mt-4">
+                      <!-- Contenedor proporcional -->
+                      <div class="relative border-[3px] border-slate-400 bg-slate-50 overflow-hidden"
+                           [style.width]="'min(100%, ' + (600 * (prod.width / prod.height)) + 'px)'"
+                           [style.aspect-ratio]="prod.width + ' / ' + prod.height"
+                           style="max-height: 400px; max-width: 100%;">
+                        <ng-container *ngFor="let c of prod.components">
+                          <div *ngIf="c._print" class="absolute border border-slate-400 flex flex-col items-center justify-center overflow-hidden"
+                               [style.background-color]="c._print.type === 'hole' ? '#f0f9ff' : (c._print.type === 'divider' ? '#334155' : '#dbeafe')"
+                               [style.left.%]="(c._print.xMm / prod.width) * 100"
+                               [style.top.%]="(c._print.yMm / prod.height) * 100"
+                               [style.width.%]="(c._print.widthMm / prod.width) * 100"
+                               [style.height.%]="(c._print.heightMm / prod.height) * 100"
+                               [style.z-index]="c._print.type === 'divider' ? 10 : 1">
+                            <img *ngIf="c._print.imageUrl" [src]="c._print.imageUrl" 
+                                 class="absolute top-0 left-0 w-full h-full object-fill opacity-100 z-0" style="pointer-events: none;" />
+                            <div *ngIf="c._print.type !== 'divider'" class="relative z-10 text-center flex flex-col items-center justify-center bg-white/90 px-1 py-0.5 rounded shadow-sm leading-none" style="font-size: 0.6rem;">
+                                <span class="font-bold text-slate-800 line-clamp-1 max-w-full">{{ c.name }}</span>
+                                <span class="text-slate-600 mt-0.5">{{ c._print.widthMm }}×{{ c._print.heightMm }}</span>
+                            </div>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </ng-container>
 
             <!-- Footer Container with break-inside-avoid to prevent page break splitting the totals -->
             <div style="page-break-inside: avoid; break-inside: avoid;">
@@ -980,4 +1107,5 @@
       </tbody>
     </table>
   </ng-container>
+
 </div>

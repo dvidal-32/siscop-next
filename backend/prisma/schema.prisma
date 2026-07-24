@@ -605,6 +605,55 @@ model EngineeringRule {
 }
 
 // ──────────────────────────────────────────────
+// PRODUCTOS COTIZADOS
+// ──────────────────────────────────────────────
+model QuotedProduct {
+  id                   String              @id @default(uuid())
+  quote_version_id     String
+  quote_version        QuoteVersion        @relation(fields: [quote_version_id], references: [id], onDelete: Cascade)
+  item_type            String              @default("template") // "template" | "catalog_item" | "composite"
+  
+  template_id          String?
+  template             EngineeringTemplate? @relation(fields: [template_id], references: [id])
+  
+  catalog_item_id      String?
+  catalog_item         CatalogItem?         @relation(fields: [catalog_item_id], references: [id])
+  
+  // ── Soporte para Productos Compuestos (Fachadas) ──
+  // Si is_composite=true, este ítem es un contenedor (ej. "Frente Comercial")
+  // Sus sub-elementos son los hijos referenciados por parent_id
+  is_composite         Boolean             @default(false)
+  parent_id            String?             // FK al producto compuesto padre (null si es item raíz)
+  parent               QuotedProduct?      @relation("CompositeChildren", fields: [parent_id], references: [id], onDelete: Cascade)
+  components           QuotedProduct[]     @relation("CompositeChildren")
+  // JSON que guarda la posición y tamaño relativo en el grid de diseño visual
+  // Ej: { "x": 0, "y": 0, "w": 900, "h": 2500, "type": "product" | "divider" | "hole" }
+  layout_data          Json?
+  sort_order           Int                 @default(0) // Orden de visualización dentro del padre
+  
+  name                 String
+  width                Decimal?            @db.Decimal(10, 2)  // mm (opcional para item directo)
+  height               Decimal?            @db.Decimal(10, 2)  // mm (opcional)
+  area                 Decimal             @default(0.0) @db.Decimal(10, 2) // m2 o sqft
+  quantity             Int                 @default(1)
+  unit_cost            Decimal             @default(0.0) @db.Decimal(12, 2) // Costo calculado
+  unit_price           Decimal             @default(0.0) @db.Decimal(12, 2) // Costo + margen (o precio directo)
+  total_price          Decimal             @default(0.0) @db.Decimal(12, 2)
+  pricing_method       String              @default("cost") // "cost" | "area" | "item"
+  applied_price_list   Int?                // 1, 2, 3, 4
+  // Snapshot completo del resultado del motor al momento de cotizar
+  engineering_snapshot Json?
+  notes                String?
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+
+  @@index([quote_version_id])
+  @@index([template_id])
+  @@index([parent_id])
+  @@map("quoted_products")
+}
+
+// ──────────────────────────────────────────────
 // MÓDULO COMERCIAL: CLIENTES
 // ──────────────────────────────────────────────
 model Client {
@@ -727,41 +776,8 @@ model QuoteVersion {
   @@map("quote_versions")
 }
 
-// ──────────────────────────────────────────────
-// PRODUCTOS COTIZADOS
-// ──────────────────────────────────────────────
-model QuotedProduct {
-  id                   String              @id @default(uuid())
-  quote_version_id     String
-  quote_version        QuoteVersion        @relation(fields: [quote_version_id], references: [id], onDelete: Cascade)
-  item_type            String              @default("template") // "template" | "catalog_item"
-  
-  template_id          String?
-  template             EngineeringTemplate? @relation(fields: [template_id], references: [id])
-  
-  catalog_item_id      String?
-  catalog_item         CatalogItem?         @relation(fields: [catalog_item_id], references: [id])
-  
-  name                 String
-  width                Decimal?            @db.Decimal(10, 2)  // mm (opcional para item directo)
-  height               Decimal?            @db.Decimal(10, 2)  // mm (opcional)
-  area                 Decimal             @default(0.0) @db.Decimal(10, 2) // m2 o sqft
-  quantity             Int                 @default(1)
-  unit_cost            Decimal             @default(0.0) @db.Decimal(12, 2) // Costo calculado
-  unit_price           Decimal             @default(0.0) @db.Decimal(12, 2) // Costo + margen (o precio directo)
-  total_price          Decimal             @default(0.0) @db.Decimal(12, 2)
-  pricing_method       String              @default("cost") // "cost" | "area" | "item"
-  applied_price_list   Int?                // 1, 2, 3, 4
-  // Snapshot completo del resultado del motor al momento de cotizar
-  engineering_snapshot Json?
-  notes                String?
-  created_at           DateTime            @default(now())
-  updated_at           DateTime            @updatedAt
 
-  @@index([quote_version_id])
-  @@index([template_id])
-  @@map("quoted_products")
-}
+
 
 // ──────────────────────────────────────────────
 // MÓDULO DE INVENTARIO Y COMPRAS (FASE 1)

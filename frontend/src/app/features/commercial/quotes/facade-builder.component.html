@@ -1,0 +1,371 @@
+<div class="facade-builder-overlay" style="z-index: 9999;" (click)="cancel()">
+  <div class="facade-builder-modal" (click)="$event.stopPropagation()">
+
+    <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+    <div class="fb-header">
+      <div class="fb-header-title">
+        <div class="fb-header-icon">🏗️</div>
+        <div>
+          <h2>Constructor de Fachada</h2>
+          <p *ngIf="step() === 'dimensions'">Ingresa las dimensiones del espacio a cubrir</p>
+          <p *ngIf="step() === 'design'">
+            <strong>{{ facadeName() }}</strong> —
+            {{ totalWidthMm() | number:'1.0-0' }}mm × {{ totalHeightMm() | number:'1.0-0' }}mm
+          </p>
+        </div>
+      </div>
+      <button class="fb-close-btn" (click)="cancel()" title="Cerrar">✕</button>
+    </div>
+
+    <!-- ══ PASO 1: DIMENSIONES ════════════════════════════════════════════ -->
+    <div *ngIf="step() === 'dimensions'" class="fb-step-dimensions">
+      <div class="fb-dims-form">
+        <div class="fb-field-group">
+          <label>Nombre de la Fachada</label>
+          <input type="text" [ngModel]="facadeName()" (ngModelChange)="facadeName.set($event)"
+            placeholder="Ej: Frente Comercial Entrada" class="fb-input" />
+        </div>
+        <div class="fb-dims-row">
+          <div class="fb-field-group">
+            <label>Ancho Total (mm)</label>
+            <input type="number" min="100" step="10"
+              [ngModel]="totalWidthMm()" (ngModelChange)="totalWidthMm.set(+$event)"
+              class="fb-input fb-input-number" placeholder="3000" />
+            <span class="fb-input-hint">{{ (totalWidthMm() / 1000) | number:'1.2-2' }} m</span>
+          </div>
+          <div class="fb-dims-separator">×</div>
+          <div class="fb-field-group">
+            <label>Alto Total (mm)</label>
+            <input type="number" min="100" step="10"
+              [ngModel]="totalHeightMm()" (ngModelChange)="totalHeightMm.set(+$event)"
+              class="fb-input fb-input-number" placeholder="2500" />
+            <span class="fb-input-hint">{{ (totalHeightMm() / 1000) | number:'1.2-2' }} m</span>
+          </div>
+          <div class="fb-field-group">
+            <label>Cantidad</label>
+            <input type="number" min="1"
+              [ngModel]="facadeQuantity()" (ngModelChange)="facadeQuantity.set(+$event)"
+              class="fb-input fb-input-number" />
+          </div>
+        </div>
+        <div class="fb-field-group">
+          <label>Notas (opcional)</label>
+          <input type="text" [ngModel]="facadeNotes()" (ngModelChange)="facadeNotes.set($event)"
+            placeholder="Ej: Perfil de aluminio blanco, vidrio 6mm..." class="fb-input" />
+        </div>
+
+        <!-- Vista previa de proporción -->
+        <div class="fb-preview-container">
+          <div class="fb-preview-label">Vista previa de proporción</div>
+          <div class="fb-preview-box-wrap">
+            <div class="fb-preview-box"
+              [style.aspect-ratio]="totalWidthMm() + '/' + totalHeightMm()">
+              <span class="fb-preview-dim">{{ totalWidthMm() }}mm</span>
+              <span class="fb-preview-dim-h">{{ totalHeightMm() }}mm</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="fb-btn-primary fb-btn-full" (click)="goToDesign()"
+          [disabled]="totalWidthMm() < 100 || totalHeightMm() < 100">
+          Continuar → Diseñar Fachada
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ PASO 2: DISEÑO ════════════════════════════════════════════════ -->
+    <div *ngIf="step() === 'design'" class="fb-design-layout">
+
+      <!-- ── Panel Izquierdo: Paleta ─────────────────────────────────── -->
+      <div class="fb-palette">
+        <div class="fb-panel-title">🧩 Elementos</div>
+
+        <div class="fb-palette-section">
+          <div class="fb-palette-section-title">Divisores</div>
+          <div class="fb-palette-item"
+            draggable="true"
+            (dragstart)="onPaletteDragStart({ elementType: 'divider', dividerDirection: 'vertical' })"
+            (dragend)="onPaletteDragEnd()">
+            <span class="fb-palette-icon">⬛</span>
+            <div>
+              <div class="fb-palette-name">Tubo Vertical</div>
+              <div class="fb-palette-hint">Arrastra a un hueco</div>
+            </div>
+          </div>
+          <div class="fb-palette-item"
+            draggable="true"
+            (dragstart)="onPaletteDragStart({ elementType: 'divider', dividerDirection: 'horizontal' })"
+            (dragend)="onPaletteDragEnd()">
+            <span class="fb-palette-icon">▬</span>
+            <div>
+              <div class="fb-palette-name">Tubo Horizontal</div>
+              <div class="fb-palette-hint">Arrastra a un hueco</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fb-palette-section">
+          <div class="fb-palette-section-title">Productos</div>
+          <div class="fb-palette-item"
+            draggable="true"
+            (dragstart)="onPaletteDragStart({ elementType: 'product' })"
+            (dragend)="onPaletteDragEnd()">
+            <span class="fb-palette-icon">🪟</span>
+            <div>
+              <div class="fb-palette-name">Producto</div>
+              <div class="fb-palette-hint">Arrastra a un hueco</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instrucciones -->
+        <div class="fb-palette-instructions">
+          <p><strong>Cómo usar:</strong></p>
+          <ol>
+            <li>Arrastra un <em>Tubo</em> al hueco para dividirlo</li>
+            <li>Introduce las medidas exactas</li>
+            <li>Arrastra <em>Producto</em> al hueco y asígnalo</li>
+            <li>Guarda al terminar</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ── Panel Central: Lienzo ──────────────────────────────────── -->
+      <div class="fb-canvas-area">
+        <div class="fb-canvas-title">
+          <span>Lienzo — {{ totalWidthMm() }}mm × {{ totalHeightMm() }}mm</span>
+          <button class="fb-btn-sm fb-btn-ghost" (click)="backToDimensions()">← Editar dimensiones</button>
+        </div>
+
+        <!-- Grid visual proporcional -->
+        <div class="fb-canvas-wrap">
+          <div class="fb-canvas"
+            [style.width]="'min(100cqw, 100cqh * (' + totalWidthMm() + ' / ' + totalHeightMm() + '))'"
+            [style.height]="'min(100cqh, 100cqw * (' + totalHeightMm() + ' / ' + totalWidthMm() + '))'">
+            <div *ngFor="let cell of cells()"
+              class="fb-cell"
+              [class.fb-cell-hole]="cell.elementType === 'hole'"
+              [class.fb-cell-product]="cell.elementType === 'product'"
+              [class.fb-cell-divider]="cell.elementType === 'divider'"
+              [class.fb-cell-selected]="selectedCellId() === cell.id"
+              [style.left.%]="(cell.xMm / totalWidthMm()) * 100"
+              [style.top.%]="(cell.yMm / totalHeightMm()) * 100"
+              [style.width.%]="(cell.widthMm / totalWidthMm()) * 100"
+              [style.height.%]="(cell.heightMm / totalHeightMm()) * 100"
+              [style.background-color]="cell.color"
+                (click)="selectCell(cell.id)"
+                (dragover)="onCellDragOver($event)"
+                (drop)="onCellDrop($event, cell.id)">
+
+                <img *ngIf="cell.imageUrl" [src]="cell.imageUrl" 
+                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; opacity: 1; z-index: 0; pointer-events: none;" />
+
+                <!-- Contenido de la celda -->
+                <div class="fb-cell-inner" style="position: relative; z-index: 1;">
+                  <div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                    <div class="fb-cell-type-badge"
+                      *ngIf="cell.elementType !== 'divider'">
+                      {{ cell.elementType === 'hole' ? '○' : '●' }}
+                    </div>
+                    <div class="fb-cell-label">{{ cell.label }}</div>
+                    <div class="fb-cell-dims">
+                      {{ cell.widthMm }}×{{ cell.heightMm }}mm
+                    </div>
+                    <div class="fb-cell-price" *ngIf="cell.estimatedPrice && cell.estimatedPrice > 0">
+                      ~{{ cell.estimatedPrice | tenantCurrency }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        <!-- Totales -->
+        <div class="fb-totals-bar">
+          <div class="fb-total-item">
+            <span class="fb-total-label">Elementos</span>
+            <span class="fb-total-value">{{ cells().length }}</span>
+          </div>
+          <div class="fb-total-item">
+            <span class="fb-total-label">Total Estimado × {{ facadeQuantity() }}</span>
+            <span class="fb-total-value fb-total-highlight">
+              {{ (totalEstimated() * facadeQuantity()) | tenantCurrency }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel Derecho: Propiedades ─────────────────────────────── -->
+      <div class="fb-properties">
+        <div class="fb-panel-title">⚙️ Propiedades</div>
+
+        <!-- Sin selección -->
+        <div *ngIf="!selectedCell()" class="fb-props-empty">
+          <div class="fb-props-empty-icon">👆</div>
+          <p>Haz clic en un elemento del lienzo para ver sus propiedades</p>
+        </div>
+
+        <!-- Celda seleccionada -->
+        <div *ngIf="selectedCell() as cell" class="fb-props-content">
+          <!-- Medidas -->
+          <div class="fb-props-section" style="padding: 0.5rem;">
+            <div class="fb-props-section-title" style="padding-bottom: 0.25rem; border-bottom: none;">Medidas</div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 0.375rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                <span class="fb-props-label" style="font-size: 0.625rem;">Ancho</span>
+                <strong class="fb-props-val">{{ cell.widthMm }} mm</strong>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                <span class="fb-props-label" style="font-size: 0.625rem;">Alto</span>
+                <strong class="fb-props-val">{{ cell.heightMm }} mm</strong>
+              </div>
+              <div *ngIf="cell.elementType !== 'divider'" style="display: flex; flex-direction: column; gap: 0.125rem; text-align: right;">
+                <span class="fb-props-label" style="font-size: 0.625rem;">Área</span>
+                <strong class="fb-props-val">{{ ((cell.widthMm / 1000) * (cell.heightMm / 1000)) | number:'1.3-3' }} m²</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tipo: Hueco libre -->
+          <div *ngIf="cell.elementType === 'hole'" class="fb-props-section">
+            <div class="fb-props-section-title">Asignar producto</div>
+            <p class="fb-props-hint">Este hueco está vacío. Arrastra un elemento de la paleta o selecciona aquí:</p>
+            <button class="fb-btn-sm fb-btn-primary" (click)="convertCellToProduct(cell.id)">
+              + Asignar Producto
+            </button>
+          </div>
+
+          <!-- Tipo: Producto -->
+          <div *ngIf="cell.elementType === 'product'" class="fb-props-section" style="padding: 0.5rem; gap: 0.375rem;">
+            <div class="fb-props-section-title" style="padding-bottom: 0.25rem;">Producto asignado</div>
+            <div class="fb-field-group" style="gap: 0.125rem;">
+              <label style="font-size: 0.625rem;">Nombre</label>
+              <input type="text" [ngModel]="cell.label"
+                (ngModelChange)="onLabelChange(cell.id, $event)" class="fb-input" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;" />
+            </div>
+            
+            <div class="fb-field-group" style="gap: 0.125rem;">
+              <label style="font-size: 0.625rem;">Tipo</label>
+              <select class="fb-input" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;"
+                [ngModel]="cell.itemType || ''"
+                (ngModelChange)="cell.itemType = $event">
+                <option value="">-- Seleccionar tipo --</option>
+                <option value="template">Fabricación (plantilla)</option>
+                <option value="catalog_item">Inventario (artículo)</option>
+              </select>
+            </div>
+
+            <!-- Selector de plantilla -->
+            <div class="fb-field-group" *ngIf="cell.itemType === 'template'" style="gap: 0.125rem;">
+              <label style="font-size: 0.625rem;">Plantilla</label>
+              <select class="fb-input" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;"
+                [ngModel]="cell.templateId || ''"
+                (ngModelChange)="onProductAssigned(cell.id, 'template', $event)">
+                <option value="">Seleccionar plantilla...</option>
+                <option *ngFor="let t of templates()" [value]="t.id">{{ t.code }} - {{ t.name }}</option>
+              </select>
+            </div>
+
+            <!-- Selector de artículo de catálogo -->
+            <div class="fb-field-group" *ngIf="cell.itemType === 'catalog_item'" style="gap: 0.125rem;">
+              <label style="font-size: 0.625rem;">Artículo</label>
+              <select class="fb-input" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;"
+                [ngModel]="cell.catalogItemId || ''"
+                (ngModelChange)="onProductAssigned(cell.id, 'catalog_item', $event)">
+                <option value="">Seleccionar artículo...</option>
+                <option *ngFor="let i of catalogItems()" [value]="i.id">{{ i.code }} - {{ i.name }}</option>
+              </select>
+            </div>
+
+            <!-- Variables de Plantilla -->
+            <div *ngIf="cell.itemType === 'template' && cell.templateId" class="fb-template-vars" style="padding-left: 8px; border-left: 2px solid #374151; margin-bottom: 0.25rem; display: flex; flex-direction: column; gap: 0.375rem;">
+              <ng-container *ngFor="let v of getTemplateVariables(cell.templateId)">
+                <div class="fb-field-group" style="gap: 0.125rem;">
+                  <label style="font-size: 0.625rem;">{{ v.label || v.name }}</label>
+                  
+                  <!-- Tipo MANUAL o COMPUTED (Ej: Cuerpos) -->
+                  <input *ngIf="v.type === 'MANUAL' || v.type === 'COMPUTED'" type="number" class="fb-input"
+                    [ngModel]="getCellValue(cell, v)"
+                    (ngModelChange)="onVariableChange(cell.id, v.name, $event)" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;" />
+                  
+                  <!-- Tipo FINISH_SELECTOR -->
+                  <select *ngIf="v.type === 'FINISH_SELECTOR'" class="fb-input"
+                    [ngModel]="getCellValue(cell, v)"
+                    (ngModelChange)="onVariableChange(cell.id, v.name, $event)" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;">
+                    <option value="">Seleccionar Acabado...</option>
+                    <option *ngFor="let f of finishes()" [value]="f.id">{{ f.name }}</option>
+                  </select>
+
+                  <!-- Tipo ITEM_SELECTOR -->
+                  <select *ngIf="v.type === 'ITEM_SELECTOR'" class="fb-input"
+                    [ngModel]="getCellValue(cell, v)"
+                    (ngModelChange)="onVariableChange(cell.id, v.name, $event)" style="padding: 0.375rem 0.5rem; font-size: 0.75rem;">
+                    <option value="">Seleccionar {{ v.label || v.name }}...</option>
+                    <option *ngFor="let i of getItemsByCategory(v.list_options?.category)" [value]="i.id">{{ i.name }}</option>
+                  </select>
+                </div>
+              </ng-container>
+            </div>
+
+            <!-- Precio estimado -->
+            <div class="fb-price-preview" *ngIf="cell.estimatedPrice !== undefined">
+              <span class="fb-price-label">Precio estimado:</span>
+              <span class="fb-price-val">{{ cell.estimatedPrice | tenantCurrency }}</span>
+            </div>
+
+            <button class="fb-btn-sm fb-btn-danger" (click)="clearCell(cell.id)">
+              🗑 Limpiar celda
+            </button>
+          </div>
+
+          <!-- Tipo: Divisor -->
+          <div *ngIf="cell.elementType === 'divider'" class="fb-props-section">
+            <div class="fb-props-section-title">Perfil / Tubo</div>
+            <div class="fb-props-row">
+              <span class="fb-props-label">Dirección:</span>
+              <strong class="fb-props-val">{{ cell.dividerDirection === 'vertical' ? 'Vertical' : 'Horizontal' }}</strong>
+            </div>
+
+            <!-- Asignar perfil al tubo -->
+            <div class="fb-field-group">
+              <label>Perfil de catálogo</label>
+              <select class="fb-input"
+                [ngModel]="cell.catalogItemId || ''"
+                (ngModelChange)="onDividerProductAssigned(cell.id, 'catalog_item', $event)">
+                <option value="">Sin perfil asignado</option>
+                <option *ngFor="let i of catalogItems()" [value]="i.id">{{ i.code }} - {{ i.name }}</option>
+              </select>
+            </div>
+
+            <div class="fb-price-preview" *ngIf="cell.estimatedPrice !== undefined && cell.estimatedPrice > 0">
+              <span class="fb-price-label">Precio estimado:</span>
+              <span class="fb-price-val">{{ cell.estimatedPrice | tenantCurrency }}</span>
+            </div>
+
+            <button class="fb-btn-sm fb-btn-primary" (click)="moveDivider(cell.id)" style="margin-bottom: 0.5rem; width: 100%">
+              ↕↔ Mover divisor
+            </button>
+            <button class="fb-btn-sm fb-btn-danger" (click)="removeDivider(cell.id)">
+              🗑 Eliminar divisor (fusionar huecos)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FOOTER ════════════════════════════════════════════════════════ -->
+    <div class="fb-footer" *ngIf="step() === 'design'">
+      <div class="fb-footer-info">
+        <span>{{ cells().filter(c => c.elementType === 'product').length }} productos asignados</span>
+        <span class="fb-footer-total">Total: {{ totalEstimated() | tenantCurrency }}</span>
+      </div>
+      <div class="fb-footer-actions">
+        <button class="fb-btn fb-btn-ghost" (click)="cancel()">Cancelar</button>
+        <button class="fb-btn fb-btn-primary" (click)="saveComposite()"
+          [disabled]="cells().filter(c => c.elementType === 'product').length === 0">
+          ✓ Agregar a Cotización
+        </button>
+      </div>
+    </div>
+
+  </div>

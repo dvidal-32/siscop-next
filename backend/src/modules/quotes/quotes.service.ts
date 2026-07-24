@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../shared/database/prisma.service';
 import { EngineeringEngineService } from '../engineering/engine/engineering-engine.service';
-import { CreateQuoteDto, CreateQuotedProductDto } from './dto/create-quote.dto';
+import { CreateQuoteDto, CreateQuotedProductDto, CompositeComponentDto } from './dto/create-quote.dto';
 import { UpdateQuoteDto } from './dto/update-quote.dto';
 import { CreateQuoteVersionDto } from './dto/create-quote-version.dto';
 
@@ -47,9 +47,19 @@ export class QuotesService {
           orderBy: { version_number: 'desc' },
           include: {
             products: {
+              where: { parent_id: null }, // Solo ítems raíz (sin padre)
+              orderBy: { sort_order: 'asc' },
               include: { 
                 template: { select: { id: true, name: true, code: true } },
-                catalog_item: { select: { id: true, name: true, code: true, unit: true } }
+                catalog_item: { select: { id: true, name: true, code: true, unit: true } },
+                // Incluir sub-ítems (hijos) para productos compuestos
+                components: {
+                  orderBy: { sort_order: 'asc' },
+                  include: {
+                    template: { select: { id: true, name: true, code: true } },
+                    catalog_item: { select: { id: true, name: true, code: true, unit: true } },
+                  },
+                },
               },
             },
           },
@@ -108,6 +118,13 @@ export class QuotesService {
 
     // 5. Crear todo en una transacción
     return this.prisma.$transaction(async (tx) => {
+      // Separar ítems raíz (sin padre) de los compuestos que necesitan crear hijos
+      const rootProducts = calculatedProducts.filter((p: any) => !p._sub_components);
+      const compositeProducts = calculatedProducts.filter((p: any) => p._sub_components);
+
+      // Construir los datos de creación, excluyendo el marcador interno
+      const rootCreateData = rootProducts.map(({ _sub_components, ...p }: any) => p);
+
       const quote = await tx.quote.create({
         data: {
           tenant_id: tenantId,
@@ -129,7 +146,7 @@ export class QuotesService {
               payment_conditions: dto.payment_conditions,
               is_current: true,
               products: {
-                create: calculatedProducts,
+                create: rootCreateData,
               },
             },
           },
@@ -138,6 +155,26 @@ export class QuotesService {
           versions: { include: { products: true } },
         },
       });
+
+      // Crear los ítems compuestos con sus hijos
+      if (compositeProducts.length > 0) {
+        const versionId = quote.versions[0].id;
+        for (const { _sub_components, ...compositeData } of compositeProducts) {
+          const parent = await tx.quotedProduct.create({
+            data: { ...compositeData, quote_version_id: versionId },
+          });
+          // Crear cada sub-componente vinculado al padre
+          if (_sub_components && _sub_components.length > 0) {
+            await tx.quotedProduct.createMany({
+              data: _sub_components.map((child: any) => ({
+                ...child,
+                quote_version_id: versionId,
+                parent_id: parent.id,
+              })),
+            });
+          }
+        }
+      }
 
       return quote;
     });
@@ -198,6 +235,11 @@ export class QuotesService {
         data: { is_current: false },
       });
 
+      const rootProducts = calculatedProducts.filter((p: any) => !p._sub_components);
+      const compositeProducts = calculatedProducts.filter((p: any) => p._sub_components);
+      
+      const rootCreateData = rootProducts.map(({ _sub_components, ...p }: any) => p);
+
       // Crear nueva versión
       const newVersion = await tx.quoteVersion.create({
         data: {
@@ -212,11 +254,30 @@ export class QuotesService {
           payment_conditions: dto.payment_conditions,
           is_current: true,
           products: {
-            create: calculatedProducts,
+            create: rootCreateData,
           },
         },
         include: { products: true },
       });
+
+      // Crear los ítems compuestos con sus hijos
+      if (compositeProducts.length > 0) {
+        for (const { _sub_components, ...compositeData } of compositeProducts) {
+          const parent = await tx.quotedProduct.create({
+            data: { ...compositeData, quote_version_id: newVersion.id },
+          });
+          
+          if (_sub_components && _sub_components.length > 0) {
+            await tx.quotedProduct.createMany({
+              data: _sub_components.map((child: any) => ({
+                ...child,
+                quote_version_id: newVersion.id,
+                parent_id: parent.id,
+              })),
+            });
+          }
+        }
+      }
 
       // Actualizar la cotización padre
       await tx.quote.update({
@@ -295,6 +356,106 @@ export class QuotesService {
   }
 
   /**
+   * Calcula el precio de un sub-componente individual de una fachada.
+   */
+  private async calculateSingleComponent(
+    component: CompositeComponentDto,
+    tenantId: string,
+    priceListLevel: number,
+    margin: number,
+    sortOrder: number = 0,
+  ) {
+    const itemType = component.item_type || (component.catalog_item_id ? 'catalog_item' : 'template');
+
+    // Manejar huecos, divisores o celdas vacías sin producto asignado
+    if (!component.template_id && !component.catalog_item_id) {
+      return {
+        item_type: component.item_type || 'none',
+        name: component.name || 'Elemento sin asignar',
+        width: component.width,
+        height: component.height,
+        area: ((component.width || 0) / 1000) * ((component.height || 0) / 1000),
+        quantity: component.quantity || 1,
+        unit_cost: 0,
+        unit_price: 0,
+        total_price: 0,
+        pricing_method: 'none',
+        applied_price_list: null,
+        layout_data: component.layout_data || null,
+        sort_order: sortOrder,
+        notes: component.notes,
+        engineering_snapshot: undefined,
+      };
+    }
+
+    if (itemType === 'catalog_item' && component.catalog_item_id) {
+      const item = await this.prisma.catalogItem.findFirst({
+        where: { id: component.catalog_item_id },
+      });
+      const unitCost = Number(item?.cost || 0);
+      const unit = (item?.unit || '').toLowerCase();
+      let computedFactor = 1;
+      if (['m2', 'p2'].includes(unit)) {
+        computedFactor = unit === 'p2'
+          ? ((component.width || 0) / 304.8) * ((component.height || 0) / 304.8)
+          : ((component.width || 0) / 1000) * ((component.height || 0) / 1000);
+      } else if (['m', 'pl'].includes(unit)) {
+        computedFactor = unit === 'pl' ? ((component.width || 0) / 304.8) : ((component.width || 0) / 1000);
+      }
+      const totalPrice = unitCost * computedFactor * (component.quantity || 1);
+      return {
+        item_type: itemType,
+        catalog_item_id: component.catalog_item_id,
+        name: component.name || item?.name || 'Artículo',
+        width: component.width,
+        height: component.height,
+        area: computedFactor !== 1 ? computedFactor : 0,
+        quantity: component.quantity || 1,
+        unit_cost: unitCost,
+        unit_price: unitCost,
+        total_price: totalPrice,
+        pricing_method: 'item',
+        applied_price_list: null,
+        layout_data: component.layout_data || null,
+        sort_order: sortOrder,
+        notes: component.notes,
+        engineering_snapshot: undefined,
+      };
+    }
+
+    // Template de ingeniería
+    const inputVariables: Record<string, number> = {
+      ...(component.variables || {}),
+      ANCHO: component.width || 0,
+      ALTO: component.height || 0,
+      W: component.width || 0,
+      H: component.height || 0,
+    };
+    const engineResult = await this.engineService.simulate(component.template_id!, inputVariables, tenantId);
+    const unit_cost = engineResult.totalMaterialCost;
+    const unit_price = unit_cost * margin;
+    const total_price = unit_price * (component.quantity || 1);
+    return {
+      item_type: itemType,
+      template_id: component.template_id,
+      name: component.name,
+      width: component.width,
+      height: component.height,
+      area: ((component.width || 0) / 1000) * ((component.height || 0) / 1000),
+      quantity: component.quantity || 1,
+      unit_cost,
+      unit_price,
+      total_price,
+      pricing_method: 'cost',
+      applied_price_list: null,
+      layout_data: component.layout_data || null,
+      sort_order: sortOrder,
+      notes: component.notes,
+      engineering_snapshot: { ...engineResult, inputVariables } as any,
+    };
+  }
+
+  /**
    * Invoca el motor de ingeniería para cada producto y construye
    * el snapshot + precios. El motor recibe ANCHO y ALTO en mm.
    */
@@ -326,6 +487,36 @@ export class QuotesService {
 
     const calculated = await Promise.all(
       products.map(async (p) => {
+        // ── Manejo de ítems compuestos (Fachadas) ──
+        if (p.is_composite === true && p.sub_components && p.sub_components.length > 0) {
+          // Calcular cada sub-componente individualmente
+          const calculatedChildren = await Promise.all(
+            p.sub_components.map((comp, idx) =>
+              this.calculateSingleComponent(comp, tenantId, priceListLevel, appliedMargin, idx)
+            )
+          );
+          // El total del padre es la suma de todos sus hijos
+          const compositeTotal = calculatedChildren.reduce((sum, c) => sum + c.total_price, 0);
+          return {
+            item_type: 'composite',
+            name: p.name,
+            width: p.width,
+            height: p.height,
+            area: ((p.width || 0) / 1000) * ((p.height || 0) / 1000),
+            quantity: p.quantity,
+            unit_cost: compositeTotal / p.quantity,
+            unit_price: compositeTotal / p.quantity,
+            total_price: compositeTotal,
+            pricing_method: 'cost',
+            applied_price_list: null,
+            is_composite: true,
+            notes: p.notes,
+            engineering_snapshot: undefined,
+            // Marcador interno (no se guarda en DB directamente en el padre)
+            _sub_components: calculatedChildren,
+          };
+        }
+
         if (p.item_type === 'catalog_item' && p.catalog_item_id) {
           const item = catalogItemMap.get(p.catalog_item_id);
           const unitCost = Number(item?.cost || 0);
